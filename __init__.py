@@ -78,7 +78,7 @@ async def info(bot, ev:CQEvent):
     else:
         await bot.finish(ev, '未查询到该用户！')
 
-@sv.on_prefix(('pr', 'recent'))
+@sv.on_prefix('recent')
 async def recent(bot, ev:CQEvent):
     qqid = ev.user_id
     msg = ev.message.extract_plain_text()
