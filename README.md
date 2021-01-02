@@ -1,6 +1,6 @@
 #	osu
 
-基于H的osu查询模块
+基于HoshinoBot v2的osu查询模块
 
 项目地址：https://github.com/Yuri-YuzuChaN/osu
 
