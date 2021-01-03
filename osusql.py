@@ -1,24 +1,27 @@
-import pymysql
-import json
+import sqlite3
 import os
 
 def mysql(sql):
-    ''' 处理SQL语句 '''
-    osupath = os.path.dirname(__file__)
-    with open(f'{osupath}/config.json', encoding='utf-8') as d:
-        jsondata = json.load(d)
-        host = jsondata['sql_host']
-        user = jsondata['sql_user']
-        pwd = jsondata['sql_pwd']
-        db = jsondata['sql_name']
-
-    db = pymysql.Connect(host, user, pwd, db)
+osupath = os.path.dirname(__file__)
+    db = sqlite3.connect(f'{osupath}/osu.db')
     cursor = db.cursor()
+    try:
+        cursor.execute('''CREATE TABLE userinfo(
+            id      INTEGER         PRIMARY KEY     NOT NULL,
+            qqid    INTEGER         NOT NULL,
+            osuid   INTEGER         NOT NULL,
+            osuname TEXT            NOT NULL,
+            osumod  INTEGER         NOT NULL
+            )''')
+        print('Table created successfully')
+    except:
+        pass
     for i in ['insert', 'update', 'delete']:
         if i in sql:
             try:
                 cursor.execute(sql)
                 db.commit()
+                print('Operation successfully')
                 return True
             except:
                 db.rollback()
