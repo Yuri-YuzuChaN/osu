@@ -9,7 +9,7 @@ import json
 
 from .osusql import mysql
 from .api import get_api
-from .osu_draw import draw_info, draw_recent, draw_score
+from .osu_draw import draw_info, draw_score
 from .osu_file import get_user_icon
 
 osupath = os.path.dirname(__file__)
@@ -108,7 +108,7 @@ async def recent(bot, ev:CQEvent):
         osumod = 0
 
     recentinfo = requests.get(f'https://osu.ppy.sh/api/get_user_recent?k={key}&u={osuid}&m={osumod}')
-    img = draw_recent(recentinfo, osuid, osumod)
+    img = draw_score(recentinfo, osuid, osumod)
     if img: 
         await bot.send(ev, MessageSegment.image(img)) 
     else:
