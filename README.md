@@ -4,8 +4,6 @@
 
 项目地址：https://github.com/Yuri-YuzuChaN/osu
 
-**！！！目前该项目仅上传文件，尚未完善，请勿直接下载使用**
-
 ## 使用方法
 
 1. 将该项目放在HoshinoBot插件目录 `modules` 下，或者clone本项目 `git clone https://github.com/Yuri-YuzuChaN/osu`
@@ -43,6 +41,9 @@
 
 ## 更新说明
 
+ver 1.0.1
+1. 移除`draw_recent`
+
 ver 1.0.0
-1. 数据库改用`sqlite3`，不再使用`MYSQL`
-2. 删除`config.json`，不再使用
+1. 数据库改用`sqlite3`，弃用`MYSQL`
+2. 删除`config.json`
