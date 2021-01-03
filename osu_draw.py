@@ -240,7 +240,6 @@ def draw_info(user_info_json, user_mode):
         im = draw_text(im, w_pp)
 
         #等级
-        print(lv)
         lv_int = re.findall(r'\d+(?=\.\d+)', lv)
         w_lv = datatext(1115.5, 365, 30, lv_int[0], Exo2_Medium, anchor='mm')
         im = draw_text(im, w_lv)
