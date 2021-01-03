@@ -10,7 +10,7 @@
 
 1. 将该项目放在HoshinoBot插件目录 `modules` 下，或者clone本项目 `git clone https://github.com/Yuri-YuzuChaN/osu`
 2. ~~在`config.json`文件中添加`apikey`，mysql数据库地址`sql_host`，数据库名`sql_name`、表名`sql_table`、用户名`sql_user`和密码`sql_pwd`，根据自己的机器配置填入~~
-2. 在`api.py`填入申请的`apikey`
+2. 在`api.py`填入申请的`apikey`,api申请地址：https://osu.ppy.sh/p/api/
 3. pip以下依赖：`pillow`，`oppai`
 4. 在`config/__bot__.py`模块列表中添加`osu`
 5. 重启HoshinoBot
