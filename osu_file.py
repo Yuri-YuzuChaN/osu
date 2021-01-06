@@ -1,3 +1,4 @@
+import aiohttp
 import requests
 from contextlib import closing
 import hoshino
@@ -5,6 +6,7 @@ import os
 import re
 import json
 import zipfile
+import aiohttp
 from PIL import Image
 
 osupath = os.path.dirname(__file__)
@@ -12,23 +14,22 @@ osufile = f'{osupath}/OsuFile/'
 mapfile = f'{osufile}/map/'
 usericon = f'{osufile}/user_icon/'
 
-def Download(mapid):
+async def Download(mapid):
     filename = f'{mapid}.osz'
     filepath = f'{mapfile}{filename}'
     # 判断是否存在该文件
     if os.path.exists(filepath[:-4]):
         return filepath[:-4]
     else:
-        sayo = requests.get(f'https://txy1.sayobot.cn/beatmaps/download/full/{mapid}', allow_redirects = False)
-        dl = sayo.headers['location']
-
-        osz = requests.get(dl, stream = True)
-        # 开始下载osz文件
-        with closing(osz) as response:
-            chunk_size = 1024
-            with open(filepath, 'wb') as f :
-                for data in response.iter_content(chunk_size = chunk_size):
-                    f.write(data)
+        url = f'https://txy1.sayobot.cn/beatmaps/download/full/{mapid}'
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, allow_redirects = False) as re:
+                    sayo = re.headers['Location']
+        except:
+            print('请求失败或超时')
+            return
+        await get_osz(filepath, sayo)
         # 解压下载的osz文件
         myzip = zipfile.ZipFile(filepath)
         mystr = myzip.filename.split(".")
@@ -45,6 +46,17 @@ def Download(mapid):
         # 删除下载osz文件
         os.remove(filepath)
         return filepath[:-4]
+        
+async def get_osz(filepath, sayo):
+    try:
+        print('开始下载')
+        async with aiohttp.ClientSession() as session:
+            async with session.get(sayo) as req:
+                chunk = await req.read()
+                open(filepath, 'wb').write(chunk)
+    except:
+        print('地图下载失败')
+        return
 
 # 获取version文件
 def get_file(path, version):
