@@ -1,4 +1,4 @@
-#	osu
+# osu
 
 基于HoshinoBot v2的osu查询模块
 
@@ -7,8 +7,8 @@
 ## 使用方法
 
 1. 将该项目放在HoshinoBot插件目录 `modules` 下，或者clone本项目 `git clone https://github.com/Yuri-YuzuChaN/osu`
-2. ~~在`config.json`文件中添加`apikey`，mysql数据库地址`sql_host`，数据库名`sql_name`、表名`sql_table`、用户名`sql_user`和密码`sql_pwd`，根据自己的机器配置填入~~
-2. 在`api.py`填入申请的`apikey`，api申请地址：https://osu.ppy.sh/p/api/
+<!-- 2. ~~在`config.json`文件中添加`apikey`，mysql数据库地址`sql_host`，数据库名`sql_name`、表名`sql_table`、用户名`sql_user`和密码`sql_pwd`，根据自己的机器配置填入~~ -->
+2. 在`api.py`填入申请的`apikey`
 3. pip以下依赖：`pillow`，`oppai`
 4. 在`config/__bot__.py`模块列表中添加`osu`
 5. 重启HoshinoBot
@@ -17,7 +17,7 @@
 
 ## 指令说明
 
-- `[osu help]`发送指令大全图片
+- `[osuhelp]`发送指令大全图片
 - `[info]`查询自己
 - `[info :num]`查询自己在某模式的信息
 - `[info user]`查询某位玩家
@@ -39,13 +39,23 @@
 
 注：目前bug较多，尽量不要查询除std以外模式。发送的图片中的if fc pp可能有错误
 
+## 存在问题
+
+1. `pp计算`可能有错误
+2. `info`指令经验条长度错误
+
+## 饼
+
+1. 查询bp
+
 ## 更新说明
+
 ver 1.0.2
 1. 全异步执行，防止拥堵
 
 ver 1.0.1
-1. 移除`draw_recent`
+1. 移除draw_recent
 
 ver 1.0.0
-1. 数据库改用`sqlite3`，弃用`MYSQL`
-2. 删除`config.json`
+1. 数据库改用`sqlite3`，不再使用`MYSQL`
+2. 删除`config.json`，不再使用
