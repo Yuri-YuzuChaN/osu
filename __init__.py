@@ -1,9 +1,9 @@
 import os
+
+import aiohttp
 import hoshino
 from hoshino import Service, util
 from hoshino.typing import MessageSegment, NoticeSession, CQEvent
-import nonebot
-from nonebot import on_command
 import requests
 import json
 
@@ -37,9 +37,9 @@ sv_help = '''
 num ： 0 std, 1 taiko, 2 ctb, 3 mania
 '''.strip()
 sv = Service('osu', enable_on_default=True, visible=True, help_ = sv_help)
-
 key = get_api()
 mod = { '0' : 'Std', '1' : 'Taiko', '2' : 'Ctb', '3' : 'Mania'}
+osuapi = 'https://osu.ppy.sh/api/'
 
 #输入玩家信息
 @sv.on_prefix('info')
@@ -71,12 +71,13 @@ async def info(bot, ev:CQEvent):
         osuid = uid
         osumod = 0
 
-    osuinfo = requests.get(f'https://osu.ppy.sh/api/get_user?k={key}&u={osuid}&m={osumod}')
-    img = draw_info(osuinfo, osumod)
-    if img:
-        await bot.send(ev, MessageSegment.image(img))
+    msg = await draw_info(osuid, osumod)
+    if 'API' in msg:
+        await bot.send(ev, msg)
+    elif msg:
+        await bot.send(ev, msg)
     else:
-        await bot.finish(ev, '未查询到该用户！')
+        await bot.send(ev, '未知错误')
 
 @sv.on_prefix('recent')
 async def recent(bot, ev:CQEvent):
@@ -106,36 +107,38 @@ async def recent(bot, ev:CQEvent):
     else:
         osuid = msg
         osumod = 0
-
-    recentinfo = requests.get(f'https://osu.ppy.sh/api/get_user_recent?k={key}&u={osuid}&m={osumod}')
-    img = draw_score(recentinfo, osuid, osumod)
-    if img: 
-        await bot.send(ev, MessageSegment.image(img)) 
+    url = f'{osuapi}get_user_recent?k={key}&u={osuid}&m={osumod}'
+    msg_ = await draw_score(url, osuid, osumod)
+    if msg_:
+        if 'API' in msg_:
+            await bot.send(ev, msg_)
+        else:
+            await bot.send(ev, msg_)
     else:
         mid = mod[f'{osumod}']
-        await bot.send(ev, f'该玩家最近在 {mid} 模式中未有游玩记录！')
+        msg_ = f'该玩家最近在 {mid} 模式中未有游玩记录！'
+        await bot.send(ev, msg_)
         
 @sv.on_prefix('score')
 async def score(bot, ev:CQEvent):
     qqid = ev.user_id
-    msg = ev.message.extract_plain_text()
-    msg_ = msg.strip().split(' ')
-    if '' in msg_:
-        msg_.remove('')
+    msg = ev.message.extract_plain_text().strip().split(' ')
+    if '' in msg:
+        msg.remove('')
     sql = f'select osuid,osumod,osuname from userinfo where qqid = {qqid}'
     if msg:
         if ':' in msg:
-            l_num = len(msg_) - 2
+            l_num = len(msg) - 2
             if l_num != 0:
-                if msg_[l_num].isdigit():
-                    mapid = msg_[l_num]
-                    osuid = ' '.join(msg_[:l_num])
-                    osumod = msg_[l_num + 1][-1:]
+                if msg[l_num].isdigit():
+                    mapid = msg[l_num]
+                    osuid = ' '.join(msg[:l_num])
+                    osumod = msg[l_num + 1][-1:]
                 else:
                     await bot.finish(ev, '请输入正确的地图ID！')
-            elif msg_[l_num].isdigit():
-                mapid = msg_[l_num]
-                osumod = msg_[l_num + 1][-1:]
+            elif msg[l_num].isdigit():
+                mapid = msg[l_num]
+                osumod = msg[l_num + 1][-1:]
                 result = mysql(sql)
                 if result:
                     for i in result:
@@ -145,41 +148,46 @@ async def score(bot, ev:CQEvent):
             else:
                 await bot.finish(ev, '请输入正确的地图ID！')
         else:
-            l_num = len(msg_) - 1
+            l_num = len(msg) - 1
             if l_num != 0:
-                if msg_[l_num].isdigit():
-                    mapid = msg_[l_num]
-                    osuid = ' '.join(msg_[:l_num])
+                if msg[l_num].isdigit():
+                    mapid = msg[l_num]
+                    osuid = ' '.join(msg[:l_num])
                     osumod = 0
                 else:
                     await bot.finish(ev, '请输入正确的地图ID！')
-            else:
-                if msg_[l_num].isdigit():
-                    mapid = msg_[l_num]
-                    result = mysql(sql)
-                    if result:
-                        for i in result:
-                            osuid = i[2]
-                            osumod = i[1]
-                    else:
-                        await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
+            elif msg[l_num].isdigit():
+                mapid = msg[l_num]
+                result = mysql(sql)
+                if result:
+                    for i in result:
+                        osuid = i[2]
+                        osumod = i[1]
                 else:
-                    await bot.finish(ev, '请输入正确的地图ID！')
+                    await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
+            else:
+                await bot.finish(ev, '请输入正确的地图ID！')
     else:
         await bot.finish(ev, '请输入正确的地图ID！')
-    recentinfo = requests.get(f'https://osu.ppy.sh/api/get_scores?k={key}&b={mapid}&u={osuid}&m={osumod}')
-    img = draw_score(recentinfo, osuid, osumod, mapid)
-    if img:
-        await bot.send(ev, MessageSegment.image(img))
+    url = f'{osuapi}get_scores?k={key}&b={mapid}&u={osuid}&m={osumod}'
+    msg_ = await draw_score(url, osuid, osumod, mapid)
+    if msg_:
+        if 'API' in msg_:
+            await bot.send(ev, msg_)
+        else:
+            await bot.send(ev, msg_)
     else:
-        await bot.send(ev, f'您在该图未有游玩记录！')
+        msg_ = '您在该图未有游玩记录！'
+        await bot.send(ev, msg_)
         
 @sv.on_prefix('bind')
 async def bind(bot, ev:CQEvent):
     qqid = ev.user_id
     uid = ev.message.extract_plain_text()
-    jsondata = select_info(uid)
-    if jsondata:
+    jsondata = await select_info(uid)
+    if 'API' in jsondata:
+        msg = jsondata
+    elif jsondata:
         if uid:
             sql = f'select * from userinfo where qqid = {qqid}'
             result = mysql(sql)
@@ -191,17 +199,18 @@ async def bind(bot, ev:CQEvent):
                     sql = f'insert into userinfo values (0,{qqid},{osuid},"{osuname}",0)'
                     msg = mysql(sql)
                     if msg:
-                        await bot.send(ev, f'用户 {osuname} 已成功绑定QQ {qqid}')
+                        msg = f'用户 {osuname} 已成功绑定QQ {qqid}'
                     else:
-                        await bot.send(ev, '绑定失败！')
+                        msg = '绑定失败！'
                 except:
-                    await bot.send(ev, '未知错误，绑定失败！')
-            else :
-                await bot.send(ev, '您已绑定，如需要解绑请输入unbind，改绑请输入bind osuid 用户名')
+                    msg = '未知错误，绑定失败！'
+            else:
+                msg = '您已绑定，如需要解绑请输入unbind，改绑请输入bind osuid 用户名'
         else:
-            await bot.send(ev, '请输入您的 osu id')
+            msg = '请输入您的 osu id'
     else:
-        await bot.send(ev, '未查询到该用户！')
+        msg = '未查询到该用户！'
+    await bot.send(ev, msg)
 
 @sv.on_prefix('unbind')
 async def unbind(bot, ev:CQEvent):
@@ -221,15 +230,14 @@ async def unbind(bot, ev:CQEvent):
 @sv.on_prefix('update')
 async def update(bot, ev:CQEvent):
     qqid = ev.user_id
-    msg = ev.message.extract_plain_text().strip()
-    msg_ = msg.strip().split(' ')
-    if '' in msg_:
-        msg_.remove('')
+    msg = ev.message.extract_plain_text().strip().split(' ')
+    if '' in msg:
+        msg.remove('')
     sql = f'select * from userinfo where qqid = {qqid}'
     result = mysql(sql)
     if result:
         if msg:
-            if msg_[0] == 'icon':
+            if msg[0] == 'icon':
                 select_id = f'select osuid from userinfo where qqid = {qqid}'
                 result = mysql(select_id)
                 if result:
@@ -239,8 +247,8 @@ async def update(bot, ev:CQEvent):
                     await bot.send(ev, '头像更新完成')
                 else:
                     await bot.send(ev, '该用户未绑定，无法更新头像！')
-            elif msg_[0] == 'osuid':
-                osuid = msg_[1]
+            elif msg[0] == 'osuid':
+                osuid = msg[1]
                 jsondata = select_info(osuid)
                 if jsondata:
                     for i in jsondata:
@@ -286,14 +294,19 @@ async def mode(bot, ev:CQEvent):
 
 @sv.on_fullmatch('osuhelp')
 async def help(bot, ev:CQEvent):
-    await bot.send(ev, MessageSegment.image(f'file:///{os.path.abspath(osuhelp)}'))
+    img = MessageSegment.image(f'file:///{os.path.abspath(osuhelp)}')
+    await bot.send(ev, img)
 
-# 未绑定查询
-def select_info(osuid):
-    url = f'https://osu.ppy.sh/api/get_user?k={key}&u={osuid}&m=0'
-    result = requests.get(url)
-    jsondata = json.loads(result.text)
-    if jsondata:
-        return jsondata 
+async def select_info(osuid):
+    url = f'{osuapi}get_user?k={key}&u={osuid}&m=0'
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as req:
+                info = req.json()
+    except:
+        msg = 'User API请求失败，请联系管理员'
+        return msg
+    if info:
+        return info
     else:
         return False
