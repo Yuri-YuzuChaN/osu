@@ -1,12 +1,16 @@
-﻿from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 import hoshino
+from hoshino.typing import MessageSegment
 import requests
 import os
 import json
 import time
 import re
+import aiohttp
+import asyncio
+
 from .osu_file import Download, get_file, get_picture, get_user_icon
-from .api import get_api
+from .api import *
 from .osu_pp import *
 from .mods import *
 
@@ -26,6 +30,7 @@ Torus_SemiBold = os.path.join(imagePath, 'fonts', 'Torus SemiBold.otf')
 key = get_api()
 approved_num = {'-2' : 'graveyard', '-1' : 'WIP', '0' : 'pending', '1' : 'ranked', '2' : 'approved', '3' : 'qualified', '4' : 'loved'}
 mod = { '0' : 'std', '1' : 'taiko', '2' : 'ctb', '3' : 'mania'}
+api = 'https://osu.ppy.sh/api/'
 
 class picture:
     def __init__(self, L, T, Path):
@@ -127,43 +132,50 @@ def crop_bg(path, mapid, size):
         return path
 
 def stars_deff(stars):
+    diff = ''
     if 0 < stars < 2.0:
-        return 'easy'
+        diff = 'easy'
     elif 2.0 <= stars < 2.7:
-        return 'normal'
+        diff = 'normal'
     elif 2.7 <= stars < 4.0:
-        return 'hard'
+        diff = 'hard'
     elif 4.0 <= stars < 5.3:
-        return 'insane'
+        diff = 'insane'
     elif 5.3 <= stars < 6.5:
-        return 'expert'
+        diff = 'expert'
     elif 6.5 <= stars :
-        return 'expertplus'
+        diff = 'expertplus'
+    return diff
 
 def rank_score(rank):
+    rankimg = ''
     if rank == 'XH':
-        return 'ranking-XH.png'
+        rankimg =  'ranking-XH.png'
     elif rank == 'X':
-        return 'ranking-X.png'
+        rankimg =  'ranking-X.png'
     elif rank == 'SH':
-        return 'ranking-SH.png'
+        rankimg =  'ranking-SH.png'
     elif rank == 'S':
-        return 'ranking-S.png'
+        rankimg =  'ranking-S.png'
     elif rank == 'A':
-        return 'ranking-A.png'
+        rankimg =  'ranking-A.png'
     elif rank == 'B':
-        return 'ranking-B.png'
+        rankimg =  'ranking-B.png'
     elif rank == 'C':
-        return 'ranking-C.png'
+        rankimg =  'ranking-C.png'
     elif rank == 'D':
-        return 'ranking-D.png'
+        rankimg =  'ranking-D.png'
     else:
-        return 'ranking-F.png'
+        rankimg =  'ranking-F.png'
+    return rankimg
 
-def draw_info(user_info_json, user_mode):
-    jsondata = json.loads(user_info_json.text)
-    if jsondata:
-        for s in jsondata:
+async def draw_info(osuid, osumod):
+    url = f'{api}get_user?k={key}&u={osuid}&m={osumod}'
+    info = await osuapi(url)
+    if 'API' in info:
+        msg = info
+    elif info:
+        for s in info:
             uid = s['user_id']
             username = s['username']
             pc = int(s['playcount'])
@@ -209,7 +221,7 @@ def draw_info(user_info_json, user_mode):
         im.alpha_composite(area_img, (area.L, area.T))
 
         #模式
-        mode = picture(1125, 10, os.path.join(imagePath, 'mode_icon', f'{user_mode}.png'))
+        mode = picture(1125, 10, os.path.join(imagePath, 'mode_icon', f'{osumod}.png'))
         mode_img = Image.open(mode.path).convert('RGBA').resize((63, 63))
         im.alpha_composite(mode_img, (mode.L, mode.T))
 
@@ -288,16 +300,18 @@ def draw_info(user_info_json, user_mode):
         info_img = f'info_{uid}.png'
         outputImage_path = os.path.join(outputPath, info_img)
         im.save(outputImage_path)
-        outputimg = f'file:///{os.path.abspath(outputPath + info_img)}'
         
-        return outputimg
+        msg = MessageSegment.image(f'file:///{os.path.abspath(outputPath + info_img)}')
     else:
-        return False
-    
-def draw_score(return_json, username, user_mode, mapid = 0):
-    return_json = json.loads(return_json.text)
-    if return_json:
-        s = recent_json[0]
+        msg = '未查询到该用户'
+    return msg
+
+async def draw_score(url, username, osumod, mapid = 0):
+    play_json = await osuapi(url)
+    if 'API' in play_json:
+        msg = play_json
+    elif play_json:
+        s = play_json[0]
         if not mapid:
             mapid = s['beatmap_id']
         uid = s['user_id']
@@ -311,8 +325,8 @@ def draw_score(return_json, username, user_mode, mapid = 0):
         date = s['date']
         rank = s['rank']
         
-        beatmaps = requests.get(f'https://osu.ppy.sh/api/get_beatmaps?k={key}&b={mapid}&m={user_mode}')
-        beatmaps_json = json.loads(beatmaps.text)
+        url_ = f'{api}get_beatmaps?k={key}&b={mapid}&m={osumod}'
+        beatmaps_json = await osuapi(url_)
         for i in beatmaps_json:
             bmapid = i['beatmapset_id']
             approved = i['approved']
@@ -325,7 +339,7 @@ def draw_score(return_json, username, user_mode, mapid = 0):
             map_cb = i['max_combo']
         
         # 下载地图并获取地图路径
-        dirpath = Download(bmapid)
+        dirpath = await Download(bmapid)
 
         # 获取开启的mod
         mods = resolve(mods_num)
@@ -380,7 +394,7 @@ def draw_score(return_json, username, user_mode, mapid = 0):
             im.alpha_composite(app_img, (app.L, app.T))
 
         #版本图片
-        mod_id = mod[f'{user_mode}']
+        mod_id = mod[f'{osumod}']
         diff_img = f'{mod_id}-{stars_deff(stars)}'
         ver = picture(506, 255, os.path.join(imagePath, 'icons', f'{diff_img}.png'))
         ver_img = Image.open(ver.path).convert('RGBA').resize((70, 70))
@@ -527,8 +541,8 @@ def draw_score(return_json, username, user_mode, mapid = 0):
         recent_img = f'recent_{uid}.png'
         outputImage_path = os.path.join(outputPath, recent_img)
         im.save(outputImage_path)
-        outputimg = f'file:///{os.path.abspath(outputPath + recent_img)}'
 
-        return outputimg
+        msg = MessageSegment.image(f'file:///{os.path.abspath(outputPath + recent_img)}')
     else:
-        return False
+        msg = False
+    return msg
