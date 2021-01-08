@@ -4,6 +4,7 @@ from contextlib import closing
 import hoshino
 import os
 import re
+import json
 import zipfile
 import aiohttp
 from PIL import Image
@@ -16,36 +17,38 @@ usericon = f'{osufile}/user_icon/'
 
 async def Download(mapid):
     # 判断是否存在该文件
+    mapid = str(mapid)
     for file in os.listdir(mapfile):
         if mapid in file:
-            return file
-        else:
-            url = f'https://txy1.sayobot.cn/beatmaps/download/full/{mapid}'
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(url, allow_redirects = False) as re:
-                        sayo = re.headers['Location']
-            except:
-                print('请求失败或超时')
-                return
-            filename = await get_osz(sayo)
-            filepath = mapfile + filename
-            # 解压下载的osz文件
-            myzip = zipfile.ZipFile(filepath)
-            mystr = myzip.filename.split(".")
-            myzip.extractall(mystr[0])
-            myzip.close()
-            end = ['mp3','wav','mp4','avi','mov','ogg','osb']
-            # 删除其余不需要的文件
-            for root, dirs, files in os.walk(filepath[:-4], topdown=False):
-                for name in files:
-                    for i in end:
-                        if name.endswith(i):
-                            os.remove(os.path.join(root, name))
+            if os.path.exists(f'{mapfile}{file}'):
+                return f'{mapfile}{file}'
+            else:
+                url = f'https://txy1.sayobot.cn/beatmaps/download/full/{mapid}'
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(url, allow_redirects = False) as re:
+                            sayo = re.headers['Location']
+                except:
+                    print('请求失败或超时')
+                    return
+                filename = await get_osz(sayo)
+                filepath = mapfile + filename
+                # 解压下载的osz文件
+                myzip = zipfile.ZipFile(filepath)
+                mystr = myzip.filename.split(".")
+                myzip.extractall(mystr[0])
+                myzip.close()
+                end = ['mp3','wav','mp4','avi','mov','ogg','osb']
+                # 删除其余不需要的文件
+                for root, dirs, files in os.walk(filepath[:-4], topdown=False):
+                    for name in files:
+                        for i in end:
+                            if name.endswith(i):
+                                os.remove(os.path.join(root, name))
 
-            # 删除下载osz文件
-            os.remove(filepath)
-            return filepath[:-4]
+                # 删除下载osz文件
+                os.remove(filepath)
+                return filepath[:-4]
         
 async def get_osz(sayo):
     try:
@@ -72,7 +75,7 @@ def get_file(path, version):
 def get_picture(path):
     with open(path, 'r', encoding='utf-8') as f:
         text = f.read()
-    result = re.finditer(r'"(\S*?jpg|\S*?JPG|\S*?jpeg|\S*?JPEG|\S*?png|\S*?PNG)"', text)
+    result = re.finditer(r'\"(.+)\"', text)
     for i in result:
         return i.group().strip('"')
 
