@@ -8,7 +8,7 @@ import requests
 import json
 
 from .osusql import mysql
-from .api import get_api
+from .api import get_api, osuapi
 from .osu_draw import draw_info, draw_score
 from .osu_file import get_user_icon
 
@@ -25,10 +25,10 @@ sv_help = '''
 [mode num]更改查询的默认模式
 [update osuid user]更改绑定的用户名
 [update icon]更新头像
-[pr/recent]查询自己在最近游玩的成绩
-[pr/recent :num]查询自己在最近游玩某模式的成绩
-[pr/recent user]查询某位玩家在最近游玩的成绩
-[pr/recent user :num]查询某位玩家在最近游玩某模式的成绩
+[recent]查询自己在最近游玩的成绩
+[recent :num]查询自己在最近游玩某模式的成绩
+[recent user]查询某位玩家在最近游玩的成绩
+[recent user :num]查询某位玩家在最近游玩某模式的成绩
 [score mapid]查询自己在该地图的成绩
 [score mapid :num]查询自己在该地图某模式的成绩
 [score user mapid]查询某位玩家在该地图的成绩
@@ -39,7 +39,7 @@ num ： 0 std, 1 taiko, 2 ctb, 3 mania
 sv = Service('osu', enable_on_default=True, visible=True, help_ = sv_help)
 key = get_api()
 mod = { '0' : 'Std', '1' : 'Taiko', '2' : 'Ctb', '3' : 'Mania'}
-osuapi = 'https://osu.ppy.sh/api/'
+osu_api = 'https://osu.ppy.sh/api/'
 
 #输入玩家信息
 @sv.on_prefix('info')
@@ -107,7 +107,7 @@ async def recent(bot, ev:CQEvent):
     else:
         osuid = msg
         osumod = 0
-    url = f'{osuapi}get_user_recent?k={key}&u={osuid}&m={osumod}'
+    url = f'{osu_api}get_user_recent?k={key}&u={osuid}&m={osumod}'
     msg_ = await draw_score(url, osuid, osumod)
     if msg_:
         if 'API' in msg_:
@@ -169,7 +169,7 @@ async def score(bot, ev:CQEvent):
                 await bot.finish(ev, '请输入正确的地图ID！')
     else:
         await bot.finish(ev, '请输入正确的地图ID！')
-    url = f'{osuapi}get_scores?k={key}&b={mapid}&u={osuid}&m={osumod}'
+    url = f'{osu_api}get_scores?k={key}&b={mapid}&u={osuid}&m={osumod}'
     msg_ = await draw_score(url, osuid, osumod, mapid)
     if msg_:
         if 'API' in msg_:
@@ -184,32 +184,33 @@ async def score(bot, ev:CQEvent):
 async def bind(bot, ev:CQEvent):
     qqid = ev.user_id
     uid = ev.message.extract_plain_text()
-    jsondata = await select_info(uid)
-    if 'API' in jsondata:
-        msg = jsondata
-    elif jsondata:
-        if uid:
-            sql = f'select * from userinfo where qqid = {qqid}'
-            result = mysql(sql)
-            if not result:
-                for i in jsondata:
+    if uid:
+        sql = f'select * from userinfo where qqid = {qqid}'
+        result = mysql(sql)
+        if not result:
+            url = f'{osu_api}get_user?k={key}&u={uid}'
+            info = await osuapi(url)
+            if 'API' in info:
+                msg = info
+            elif info:
+                for i in info:
                     osuid = i['user_id']
                     osuname = i['username']
                 try:
-                    sql = f'insert into userinfo values (0,{qqid},{osuid},"{osuname}",0)'
-                    msg = mysql(sql)
-                    if msg:
+                    sql = f'insert into userinfo values (NULL, {qqid}, {osuid}, "{osuname}", 0)'
+                    result = mysql(sql)
+                    if result:
                         msg = f'用户 {osuname} 已成功绑定QQ {qqid}'
                     else:
                         msg = '绑定失败！'
                 except:
                     msg = '未知错误，绑定失败！'
             else:
-                msg = '您已绑定，如需要解绑请输入unbind，改绑请输入bind osuid 用户名'
+                msg = '未查询到该用户！'
         else:
-            msg = '请输入您的 osu id'
+            msg = '您已绑定，如需要解绑请输入unbind，改绑请输入update osuid 用户名'
     else:
-        msg = '未查询到该用户！'
+        msg = '请输入您的 osuid'
     await bot.send(ev, msg)
 
 @sv.on_prefix('unbind')
@@ -244,14 +245,18 @@ async def update(bot, ev:CQEvent):
                     for i in result:
                         osuid = i[0]
                     get_user_icon(osuid)
+                    get_user_header(osuid)
                     await bot.send(ev, '头像更新完成')
                 else:
                     await bot.send(ev, '该用户未绑定，无法更新头像！')
             elif msg[0] == 'osuid':
-                osuid = msg[1]
-                jsondata = select_info(osuid)
-                if jsondata:
-                    for i in jsondata:
+                try:
+                    osuid = msg[1]
+                except:
+                    await.finish(ev, '请输入更改的用户名！')
+                info = await select_info(osuid)
+                if info:
+                    for i in info:
                         osunum = i['user_id']
                         osuname = i['username']
                     update_id = f'update userinfo set osuid = {osunum}, osuname = "{osuname}" where qqid = {qqid}'
@@ -298,7 +303,7 @@ async def help(bot, ev:CQEvent):
     await bot.send(ev, img)
 
 async def select_info(osuid):
-    url = f'{osuapi}get_user?k={key}&u={osuid}&m=0'
+    url = f'{osu_api}get_user?k={key}&u={osuid}&m=0'
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as req:
