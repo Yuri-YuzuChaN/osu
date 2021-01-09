@@ -1,15 +1,14 @@
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 import hoshino
 from hoshino.typing import MessageSegment
-import requests
 import os
-import json
 import time
+from datetime import datetime, timedelta
 import re
 import aiohttp
 import asyncio
 
-from .osu_file import Download, get_file, get_picture, get_user_icon
+from .osu_file import Download, get_file, get_picture, get_user_icon, get_user_header
 from .api import *
 from .osu_pp import *
 from .mods import *
@@ -20,7 +19,6 @@ imagePath = f'{osupath}/work/'
 
 outputPath = f'{osufile}output/'
 usericonPath = f'{osufile}user_icon/'
-mapbgPath = f'{osufile}map_bg/'
 
 Exo2_Medium = os.path.join(imagePath, 'fonts', 'Exo2-Medium.otf')
 Exo2_Bold = os.path.join(imagePath, 'fonts', 'Exo2-Bold.otf')
@@ -80,7 +78,7 @@ def draw_fillet(img, radii):
     return img
 
 #裁切图片
-def crop_bg(path, mapid, size):
+def crop_bg(path, size):
     bg = Image.open(path).convert('RGBA')
     #获取长宽
     bg_width = bg.size[0]
@@ -92,6 +90,9 @@ def crop_bg(path, mapid, size):
     elif size == 'S':
         fix_height = 296
         fix_width = 436
+    elif size == 'H':
+        fix_height = 325
+        fix_width = 1200
     #固定比例
     fix_scale = fix_height / fix_width
     #图片比例
@@ -109,9 +110,7 @@ def crop_bg(path, mapid, size):
         x1, y1, x2, y2 = 0, crop_height, width, height - crop_height
         #裁切保存
         crop_img = sf.crop((x1, y1, x2, y2))
-        path = f'{mapbgPath}/{size}_{mapid}.png'
-        crop_img.save(path)
-        return path
+        return crop_img
     #当图片比例小于固定比例
     elif bg_scale < fix_scale:
         #宽比例
@@ -125,9 +124,7 @@ def crop_bg(path, mapid, size):
         x1, y1, x2, y2 = crop_width, 0, width - crop_width, height
         #裁切保存
         crop_img = sf.crop((x1, y1, x2, y2))
-        path = f'{mapbgPath}/{size}_{mapid}.png'
-        crop_img.save(path)
-        return path
+        return crop_img
     else:
         return path
 
@@ -178,6 +175,9 @@ async def draw_info(osuid, osumod):
         for s in info:
             uid = s['user_id']
             username = s['username']
+            c300 = int(s['count300'])
+            c100 = int(s['count100'])
+            c50 = int(s['count50'])
             pc = int(s['playcount'])
             r_score = int(s['ranked_score'])
             t_score = int(s['total_score'])
@@ -191,6 +191,7 @@ async def draw_info(osuid, osumod):
             c_r_sh = s['count_rank_sh']
             c_r_a = s['count_rank_a']
             country = s['country']
+            play_time = s['total_seconds_played']
             c_ranked = int(s['pp_country_rank'])
 
         info_bg = os.path.join(imagePath, 'default-info-v1.png')
@@ -198,22 +199,27 @@ async def draw_info(osuid, osumod):
         #背景
         bg = picture(1200, 857, info_bg)
         im = Image.new('RGBA', (bg.L, bg.T))
+        
+        #底图
+        header_img = get_user_header(uid)
+        if header_img:
+            header_d = crop_bg(header_img, 'H')
+            header_gb = header_d.filter(ImageFilter.GaussianBlur(2))
+            h_img = ImageEnhance.Brightness(header_gb).enhance(4 / 4.0)
+            im.alpha_composite(h_img)
 
         #背景
         bg_img = Image.open(bg.path).convert('RGBA')
         im.alpha_composite(bg_img)
-
+        
         #头像
         #获取头像
         user_icon = get_user_icon(uid)
         icon_f = Image.open(user_icon)
         #头像圆角
         icon_s = draw_fillet(icon_f, 50)
-        icon_s_img = f'{user_icon[:-4]}_s.png'
-        icon_s.save(icon_s_img)
-        icon = picture(40, 55, os.path.join(icon_s_img))
-        icon_img = Image.open(icon.path).convert('RGBA').resize((190, 190))
-        im.alpha_composite(icon_img, (icon.L, icon.T))
+        icon_img = icon_s.resize((190, 190))
+        im.alpha_composite(icon_img, (40, 55))
 
         #地区
         area = picture(272, 212, os.path.join(imagePath, 'flags', f'{country}.png'))
@@ -258,10 +264,14 @@ async def draw_info(osuid, osumod):
         
         #经验百分比
         lv_p_list = lv.split('.')
-        lv_p_float = float(f'0.{lv_p_list[1]}')
-        w_lv_p = datatext(1050, 390, 20, f'{lv_p_float * 100}%', Exo2_Medium, anchor='mm')
+        lv_p_num = lv_p_list[1]
+        if len(lv_p_num) > 4:
+            lv_p_num = lv_p_num[-3:]
+        lv_p_float = float(f'0.{lv_p_num}')
+        #lv_p_float = float(f'0.{lv_p_list[1]}')
+        w_lv_p = datatext(1060, 390, 20, f'{lv_p_float * 100}%', Exo2_Medium, anchor='rm')
         im = draw_text(im, w_lv_p)
-        lv_p = Image.new('RGBA', (int(600 * lv_p_float), 8), '#FF66AE')
+        lv_p = Image.new('RGBA', (int(400 * lv_p_float), 8), '#FF66AE')
         lv_p_img = draw_fillet(lv_p, 4)
         im.alpha_composite(lv_p_img, (662, 370))
 
@@ -292,9 +302,18 @@ async def draw_info(osuid, osumod):
         #总分
         w_t_score = datatext(1180, 726, 32, format(t_score, ','), Exo2_Medium, anchor='rm')
         im = draw_text(im, w_t_score)
+        
         #命中次数
-
+        t_count = c300 + c100 + c50
+        w_count = datatext(1180, 766, 32, format(t_count, ','), Exo2_Medium, anchor='rm')
+        im = draw_text(im, w_count)
+        
         #游玩时间
+        sec = timedelta(seconds = int(play_time))
+        d_time = datetime(1,1,1) + sec
+        t_time = "%dD %dH %dM" % (d_time.day-1, d_time.hour, d_time.minute)
+        w_time = datatext(1180, 806, 32, t_time, Exo2_Medium, anchor='rm')
+        im = draw_text(im, w_time)
 
         #完整图
         info_img = f'info_{uid}.png'
@@ -362,8 +381,7 @@ async def draw_score(url, username, osumod, mapid = 0):
         im = Image.new('RGBA', (1950, 1088))
 
         #将地图BG做背景，加高斯模糊，降低亮度
-        crop_img = crop_bg(map_path, mapid, 'BG')
-        bg_b = Image.open(crop_img)
+        bg_b = crop_bg(map_path, 'BG')
         bg_gb = bg_b.filter(ImageFilter.GaussianBlur(4))
         bg_img = ImageEnhance.Brightness(bg_gb).enhance(3 / 4.0)
         im.alpha_composite(bg_img)
@@ -375,16 +393,11 @@ async def draw_score(url, username, osumod, mapid = 0):
 
         #地图BG
         #裁剪左上BG
-        crop_img_s = crop_bg(map_path, mapid, 'S')
-        bg_img_s = Image.open(crop_img_s)
+        bg_img_s = crop_bg(map_path, 'S')
         #圆角BG
         bg_img_f = draw_fillet(bg_img_s, 22)
-        bg_path = f'{mapbgPath}F_{mapid}.png'
-        bg_img_f.save(bg_path)
-
-        d_bg = picture(26, 34, os.path.join(bg_path))
-        w_bg = Image.open(d_bg.path).convert('RGBA')
-        im.alpha_composite(w_bg, (d_bg.L, d_bg.T))
+        d_bg = picture(26, 34, bg_img_f)
+        im.alpha_composite(bg_img_f, (d_bg.L, d_bg.T))
 
         #rank状态
         if approved != '-2' and '-1':
@@ -404,13 +417,10 @@ async def draw_score(url, username, osumod, mapid = 0):
         #获取头像
         user_icon = get_user_icon(uid)
         icon_f = Image.open(user_icon)
-        icon_s_img = f'{user_icon[:-4]}_s.png'
         #头像画圆
         icon_d = draw_fillet(icon_f, 128)
-        icon_d.save(icon_s_img)
-        icon = picture(40, 425, os.path.join(icon_s_img))
-        icon_img = Image.open(icon.path).convert('RGBA').resize((80, 80))
-        im.alpha_composite(icon_img, (icon.L, icon.T))
+        icon_img = icon_d.resize((80, 80))
+        im.alpha_composite(icon_img, (40, 425))
 
         #mod
         if mods != 'NO':
@@ -494,13 +504,13 @@ async def draw_score(url, username, osumod, mapid = 0):
         #95-100% pp
         w_95pp = datatext(50, 610, 30, f'{int(map_pp[0])}pp', Torus_Regular)
         im = draw_text(im, w_95pp, color=(255, 106, 178, 255))
-        w_97pp = datatext(190, 610, 30, f'{int(map_pp[1])}pp', Torus_Regular)
+        w_97pp = datatext(190, 610, 30, f'{int(map_pp[2])}pp', Torus_Regular)
         im = draw_text(im, w_97pp, color=(255, 106, 178, 255))
-        w_98pp = datatext(330, 610, 30, f'{int(map_pp[2])}pp', Torus_Regular)
+        w_98pp = datatext(330, 610, 30, f'{int(map_pp[3])}pp', Torus_Regular)
         im = draw_text(im, w_98pp, color=(255, 106, 178, 255))
-        w_99pp = datatext(468, 610, 30, f'{int(map_pp[3])}pp', Torus_Regular)
+        w_99pp = datatext(468, 610, 30, f'{int(map_pp[4])}pp', Torus_Regular)
         im = draw_text(im, w_99pp, color=(255, 106, 178, 255))
-        w_100pp = datatext(607, 610, 30, f'{int(map_pp[4])}pp', Torus_Regular)
+        w_100pp = datatext(607, 610, 30, f'{int(map_pp[5])}pp', Torus_Regular)
         im = draw_text(im, w_100pp, color=(255, 106, 178, 255))
 
         #aim,speed,acc pp
