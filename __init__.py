@@ -10,7 +10,7 @@ import json
 from .osusql import mysql
 from .api import get_api, osuapi
 from .osu_draw import draw_info, draw_score
-from .osu_file import get_user_icon
+from .osu_file import get_user_icon, get_user_header
 
 osupath = os.path.dirname(__file__)
 osuhelp = f'{osupath}/OsuFile/osu_help.png'
@@ -253,7 +253,7 @@ async def update(bot, ev:CQEvent):
                 try:
                     osuid = msg[1]
                 except:
-                    await.finish(ev, '请输入更改的用户名！')
+                    await bot.finish(ev, '请输入更改的用户名！')
                 info = await select_info(osuid)
                 if info:
                     for i in info:
