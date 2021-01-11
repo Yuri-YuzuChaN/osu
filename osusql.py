@@ -2,7 +2,7 @@ import sqlite3
 import os
 
 def mysql(sql):
-osupath = os.path.dirname(__file__)
+    osupath = os.path.dirname(__file__)
     db = sqlite3.connect(f'{osupath}/osu.db')
     cursor = db.cursor()
     try:
