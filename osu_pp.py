@@ -1,4 +1,6 @@
-﻿from oppai import *
+import time
+from .oppai.oppai import *
+
 
 # 计算95-100acc的pp
 def calculation_acc_pp(osufile, mods_num):
