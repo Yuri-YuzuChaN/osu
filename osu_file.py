@@ -106,7 +106,7 @@ def get_user_header(uid, update = False):
             continue
     res = requests.get(f'https://osu.ppy.sh/users/{uid}')
     html = res.text
-    result = re.finditer(r'assets(\S*)jpeg', html)
+    result = re.finditer(r'assets\.ppy\.sh\\/user(\S*)"', html)
     if result:
         for i in result:
             imgurl = i.group().split('"')[0]
