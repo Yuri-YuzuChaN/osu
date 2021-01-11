@@ -400,7 +400,7 @@ async def draw_score(url, username, osumod, mapid = 0):
         im.alpha_composite(bg_img_f, (d_bg.L, d_bg.T))
 
         #rank状态
-        if approved != '-2' and '-1':
+        if approved != '-2' or approved != '-1':
             app_num = approved_num[f'{approved}']
             app = picture(415, 16, os.path.join(imagePath, 'icons', f'{app_num}.png'))
             app_img = Image.open(app.path).convert('RGBA').resize((70, 70))
