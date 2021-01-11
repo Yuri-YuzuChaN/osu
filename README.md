@@ -9,11 +9,11 @@
 1. 将该项目放在HoshinoBot插件目录 `modules` 下，或者clone本项目 `git clone https://github.com/Yuri-YuzuChaN/osu`
 2. ~~在`config.json`文件中添加`apikey`，mysql数据库地址`sql_host`，数据库名`sql_name`、表名`sql_table`、用户名`sql_user`和密码`sql_pwd`，根据自己的机器配置填入~~
 2. 在`api.py`填入申请的`apikey`
-3. pip以下依赖：`pillow`，`oppai`
+3. pip以下依赖：`pillow` ~~`oppai`~~
 4. 在`config/__bot__.py`模块列表中添加`osu`
 5. 重启HoshinoBot
 
-**注：`pillow`需要高于等于8.0.0版本，`oppai`在windows系统下需要`C++ 14.0`才可安装**
+**注：`pillow`需要高于等于8.0.0版本，`oppai`模块已自带~~`oppai`在windows系统下需要`C++ 14.0`才可安装**~~
 
 ## 指令说明
 
@@ -46,11 +46,14 @@
 ## 饼
 
 1. 查询 `bp`
-2. 附带 `oppai` 模块
 
 ## 更新说明
 
-**ver 1.0.3**
+**2021-01-11**
+1. 插件已自带pp计算模块`oppai`
+2. 修复`mode`指令错误的问题
+
+**2021-01-09**
 1. 修复计算acc 95-100 pp错误的问题
 2. 修复绑定失败的问题
 3. 修复`info`图经验条长度错误的问题
@@ -59,12 +62,12 @@
 6. 不再保存裁切图片
 7. 不再重复下载头像
 
-**ver 1.0.2**
+**2021-01-06**
 1. 全异步执行，防止拥堵
 
-**ver 1.0.1**
+**2021-01-03**
 1. 移除`draw_recent`函数
 
-**ver 1.0.0**
+**2021-01-02**
 1. 数据库改用`sqlite3`，弃用`MYSQL`
 2. 删除`config.json`
