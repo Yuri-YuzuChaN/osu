@@ -8,35 +8,38 @@
 
 1. 将该项目放在HoshinoBot插件目录 `modules` 下，或者clone本项目 `git clone https://github.com/Yuri-YuzuChaN/osu`
 2. ~~在`config.json`文件中添加`apikey`，mysql数据库地址`sql_host`，数据库名`sql_name`、表名`sql_table`、用户名`sql_user`和密码`sql_pwd`，根据自己的机器配置填入~~
-2. 在`api.py`填入申请的`apikey`
-3. pip以下依赖：`pillow` ~~`oppai`~~
-4. 在`config/__bot__.py`模块列表中添加`osu`
-5. 重启HoshinoBot
+3. 在`api.py`填入申请的`apikey`
+4. pip以下依赖：`pillow` ~~`oppai`~~
+5. 在`config/__bot__.py`模块列表中添加`osu`
+6. 重启HoshinoBot
 
-**注：`pillow`需要高于等于8.0.0版本，`oppai`模块已自带，Python必须为64 bit**
+**注：`pillow`需要高于等于8.0.0版本，`oppai`模块已自带，`oppai`目前必须在`py38 64bit`环境下才可运行**
 ~~`oppai`在windows系统下需要`C++ 14.0`才可安装~~
 
 ## 指令说明
 
-- `[osuhelp]`发送指令大全图片
-- `[info]`查询自己
-- `[info :num]`查询自己在某模式的信息
-- `[info user]`查询某位玩家
-- `[info user :num]`查询某位玩家在某模式的信息
-- `[bind user]`绑定
+- `[info]`查询自己的信息
+- `[info :mod]`查询自己在 mod 模式的信息
+- `[info user]`查询 user 
+- `[info user :mod]`查询 user 在 mod 模式的信息
+- `[bind user]`绑定用户名 user
 - `[unbind]`解绑
-- `[mode num]`更改查询的默认模式
-- `[update osuid user]`更改绑定的用户名
-- `[update icon]`更新头像
-- `[recent]`查询自己在最近游玩的成绩
-- `[recent :num]`查询自己在最近游玩某模式的成绩
-- `[recent user]`查询某位玩家在最近游玩的成绩
-- `[recent user :num]`查询某位玩家在最近游玩某模式的成绩
+- `[mode mod]`更改默认查询的模式
+- `[update osuid user]`更改绑定的用户名 user
+- `[update icon]`更新头像和头图
+- `[recent]`查询自己最近游玩的成绩
+- `[recent :mod]`查询自己最近游玩 mod 模式的成绩
+- `[recent user]`查询 user 最近游玩的成绩
+- `[recent user :mod]`查询 user 最近游玩 mod 模式的成绩
 - `[score mapid]`查询自己在该地图的成绩
-- `[score mapid :num]`查询自己在该地图某模式的成绩
-- `[score user mapid]`查询某位玩家在该地图的成绩
-- `[score user mapid :num]`查询某位玩家在该地图某模式的成绩
-- `num` ： `0` std, `1` taiko, `2` ctb, `3` mania
+- `[score mapid :mod]`查询自己在该地图 mod 模式的成绩
+- `[score user mapid]`查询 user 在该地图的成绩
+- `[score user mapid :mod]`查询 user 在该地图 mod 模式的成绩
+- `[bp num]`查询自己bp榜第 num 的成绩
+- `[bp user num]`查询 user bp榜第 num 的成绩
+- `[bp list min-max]`查询自己bp榜第 min 到 max 的成绩
+- `[bp list user min-max]`查询 user bp榜第 min 到 max 的成绩
+- `mod` : `0 `std, `1` taiko, `2` ctb, `3` mania
 
 **注：目前bug较多，尽量不要查询除std以外模式。发送的图片中的if fc pp可能有错误**
 
@@ -46,15 +49,23 @@
 
 ## 饼
 
-1. 查询 `bp`
+1. 成绩图的音乐时长
 
 ## 更新说明
 
+**2021-01-12**
+
+1. 新增`bp`指令，使用方法见指令说明
+2. 修复找不到地图BG的问题
+3. 修复无法下载个人头图的问题
+
 **2021-01-11**
-1. 插件已自带pp计算模块`oppai`
+
+1. 插件已自带pp计算模块`oppai`，需在`py38 64bit`环境下才可运行
 2. 修复`mode`指令错误的问题
 
 **2021-01-09**
+
 1. 修复计算acc 95-100 pp错误的问题
 2. 修复绑定失败的问题
 3. 修复`info`图经验条长度错误的问题
@@ -64,11 +75,14 @@
 7. 不再重复下载头像
 
 **2021-01-06**
+
 1. 全异步执行，防止拥堵
 
 **2021-01-03**
+
 1. 移除`draw_recent`函数
 
 **2021-01-02**
+
 1. 数据库改用`sqlite3`，弃用`MYSQL`
 2. 删除`config.json`
