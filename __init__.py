@@ -3,179 +3,262 @@ import aiohttp
 import hoshino
 from hoshino import Service, util
 from hoshino.typing import MessageSegment, NoticeSession, CQEvent
+import requests
+import json
 
 from .osusql import mysql
 from .api import get_api, osuapi
-from .osu_draw import draw_info, draw_score
+from .osu_draw import draw_info, draw_score, best_pfm
 from .osu_file import get_user_icon, get_user_header
 
 osupath = os.path.dirname(__file__)
 osuhelp = f'{osupath}/OsuFile/osu_help.png'
 
 sv_help = '''
-[info]查询自己
-[info :num]查询自己在某模式的信息
-[info user]查询某位玩家
-[info user :num]查询某位玩家在某模式的信息
-[bind user]绑定
-[unbind]解绑
-[mode num]更改查询的默认模式
-[update osuid user]更改绑定的用户名
-[update icon]更新头像
-[recent]查询自己在最近游玩的成绩
-[recent :num]查询自己在最近游玩某模式的成绩
-[recent user]查询某位玩家在最近游玩的成绩
-[recent user :num]查询某位玩家在最近游玩某模式的成绩
-[score mapid]查询自己在该地图的成绩
-[score mapid :num]查询自己在该地图某模式的成绩
-[score user mapid]查询某位玩家在该地图的成绩
-[score user mapid :num]查询某位玩家在该地图某模式的成绩
-
-num ： 0 std, 1 taiko, 2 ctb, 3 mania
+[osuhelp] 查看指令
 '''.strip()
 sv = Service('osu', enable_on_default=True, visible=True, help_ = sv_help)
 key = get_api()
 mod = { '0' : 'Std', '1' : 'Taiko', '2' : 'Ctb', '3' : 'Mania'}
 osu_api = 'https://osu.ppy.sh/api/'
 
-#输入玩家信息
+#输出玩家信息
 @sv.on_prefix('info')
 async def info(bot, ev:CQEvent):
     qqid = ev.user_id
-    uid = ev.message.extract_plain_text().strip()
+    msg = ev.message.extract_plain_text().strip().split(' ')
+    if '' in msg:
+        msg.remove('')
     sql = f'select osuid,osumod from userinfo where qqid = {qqid}'
-    if not uid:
-        result = mysql(sql)
+    result = mysql(sql)
+    list_len = len(msg)
+    if not msg:
         if result:
             for i in result:
                 osuid = i[0]
                 osumod = i[1]
         else:
             await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
-    elif ':' in uid:
-        if uid[:-2]:
-            osuid = uid[:-2].strip()
-            osumod = uid[-1:].strip()
-        else:
-            result = mysql(sql)
+    elif list_len == 1:
+        if ':' in msg[-1]:
             if result:
                 for i in result:
                     osuid = i[0]
-                osumod = uid[-1:].strip()
+                osumod = msg[-1][1]
             else:
                 await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
+        else:
+            osuid = msg[0]
+            osumod = 0
+    elif list_len >= 2:
+        if ':' in msg[-1]:
+            osuid = ' '.join(msg[:list_len-1])
+            osumod = msg[-1][1]
+        else:
+            osuid = ' '.join(msg[:list_len-1])
+            osumod = 0
     else:
-        osuid = uid
-        osumod = 0
+        await bot.finish(ev, '请输入正确的参数')
 
     msg = await draw_info(osuid, osumod)
-    if 'API' in msg:
-        await bot.send(ev, msg)
-    elif msg:
-        await bot.send(ev, msg)
+    if msg:
+        if 'API' in msg:
+            await bot.send(ev, msg)
+        elif msg:
+            await bot.send(ev, msg)
     else:
         await bot.send(ev, '未知错误')
 
 @sv.on_prefix('recent')
 async def recent(bot, ev:CQEvent):
     qqid = ev.user_id
-    msg = ev.message.extract_plain_text()
+    msg = ev.message.extract_plain_text().strip().split(' ')
+    if '' in msg:
+        msg.remove('')
     sql = f'select osuname,osumod from userinfo where qqid = {qqid}'
+    result = mysql(sql)
+    list_len = len(msg)
     if not msg:
-        result = mysql(sql)
         if result:
             for i in result:
                 osuid = i[0]
                 osumod = i[1]
         else:
             await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
-    elif ':' in msg:
-        if msg[:-2]:
-            osuid = msg[:-2].strip()
-            osumod = msg[-1:].strip()
-        else:
-            result = mysql(sql)
+    elif list_len == 1:
+        if ':' in msg[-1]:
             if result:
                 for i in result:
                     osuid = i[0]
-                osumod = msg[-1:].strip()
+                osumod = msg[-1][1]
             else:
                 await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
-    else:
-        osuid = msg
-        osumod = 0
-    url = f'{osu_api}get_user_recent?k={key}&u={osuid}&m={osumod}'
-    msg_ = await draw_score(url, osuid, osumod)
-    if msg_:
-        if 'API' in msg_:
-            await bot.send(ev, msg_)
         else:
-            await bot.send(ev, msg_)
+            osuid = msg[0]
+            osumod = 0
+    elif list_len >= 2:
+        if ':' in msg[-1]:
+            osuid = ' '.join(msg[:list_len-1])
+            osumod = msg[-1][1]
+        else:
+            osuid = ' '.join(msg[:list_len-1])
+            osumod = 0
+    else:
+        await bot.finish(ev, '请输入正确的参数')
+
+    url = f'{osu_api}get_user_recent?k={key}&u={osuid}&m={osumod}'
+    info = await draw_score(url, osuid, osumod)
+    if info:
+        if 'API' in info:
+            await bot.send(ev, info)
+        else:
+            await bot.send(ev, info)
     else:
         mid = mod[f'{osumod}']
-        msg_ = f'该玩家最近在 {mid} 模式中未有游玩记录！'
-        await bot.send(ev, msg_)
+        if not msg:
+            id = '您'
+        else:
+            id = osuid
+        info = f'{id} 最近在 {mid} 模式中未有游玩记录！'
+        await bot.send(ev, info)
         
 @sv.on_prefix('score')
 async def score(bot, ev:CQEvent):
     qqid = ev.user_id
-    msg = ev.message.extract_plain_text().strip().split(' ')
-    if '' in msg:
-        msg.remove('')
+    num = ev.message.extract_plain_text().strip().split(' ')
+    if '' in num:
+        num.remove('')
     sql = f'select osuid,osumod,osuname from userinfo where qqid = {qqid}'
-    if not msg:
-        await bot.finish(ev, '请输入正确的地图ID！')
-    if ':' in msg:
-        l_num = len(msg) - 2
-        if l_num != 0:
-            if msg[l_num].isdigit():
-                mapid = msg[l_num]
-                osuid = ' '.join(msg[:l_num])
-                osumod = msg[l_num + 1][-1:]
-            else:
-                await bot.finish(ev, '请输入正确的地图ID！')
-        elif msg[l_num].isdigit():
-            mapid = msg[l_num]
-            osumod = msg[l_num + 1][-1:]
-            result = mysql(sql)
-            if result:
-                for i in result:
-                    osuid = i[2]
-            else:
-                await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
+    result = mysql(sql)
+    list_len = len(num)
+    if list_len == 1:
+        if num[0].isdigit() and result:
+            for i in result:
+                osuid = i[0]
+                osumod = i[1]
+            mapid = num[0]
+        elif not result:
+            await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
         else:
             await bot.finish(ev, '请输入正确的地图ID！')
-    else:
-        l_num = len(msg) - 1
-        if l_num != 0:
-            if msg[l_num].isdigit():
-                mapid = msg[l_num]
-                osuid = ' '.join(msg[:l_num])
-                osumod = 0
-            else:
-                await bot.finish(ev, '请输入正确的地图ID！')
-        elif msg[l_num].isdigit():
-            mapid = msg[l_num]
-            result = mysql(sql)
-            if result:
-                for i in result:
-                    osuid = i[2]
-                    osumod = i[1]
-            else:
-                await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
+    elif list_len == 2:
+        if ':' in num[-1] and num[0].isdigit() and result:
+            for i in result:
+                osuid = i[0]
+            mapid = num[0]
+            osumod = num[-1][1]
+        elif num[-1].isdigit():
+            osuid = num[0]
+            mapid = num[-1]
+            osumod = 0
+        elif not result:
+            await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
+        else:
+            await bot.finish(ev, '请输入正确的地图ID！')
+    elif list_len >=3:
+        if ':' in num[-1] and num[-2].isdigit():
+            osuid = ' '.join(num[:list_len-2])
+            mapid = num[-2]
+            osumod = num[-1][1]
         else:
             await bot.finish(ev, '请输入正确的地图ID！')
 
     url = f'{osu_api}get_scores?k={key}&b={mapid}&u={osuid}&m={osumod}'
-    msg_ = await draw_score(url, osuid, osumod, mapid)
-    if msg_:
-        if 'API' in msg_:
-            await bot.send(ev, msg_)
+    msg = await draw_score(url, osuid, osumod, mapid=mapid)
+    if msg:
+        if 'API' in msg:
+            await bot.send(ev, msg)
         else:
-            await bot.send(ev, msg_)
+            await bot.send(ev, msg)
     else:
-        msg_ = '您在该图未有游玩记录！'
-        await bot.send(ev, msg_)
+        if not num:
+            id = '您'
+        else:
+            id = osuid
+        num = f'{id}在该图未有游玩记录！'
+        await bot.send(ev, msg)
+        
+@sv.on_prefix('bp')
+async def best(bot, ev:CQEvent):
+    qqid = ev.user_id
+    num = ev.message.extract_plain_text().strip().split(' ')
+    if '' in num:
+        num.remove('')
+    bpnum = ''
+    sql = f'select osuname from userinfo where qqid = {qqid}'
+    result = mysql(sql)
+    list_len = len(num)
+    if num[0] == 'list':
+        if list_len == 2:
+            if '-' in num[-1] and result:
+                li = num[-1].split('-')
+                min = int(li[0])
+                max = int(li[1])
+                range_limit = max - min +1
+                if min >= max:
+                    await bot.finish(ev, '请输入正确的bp范围')
+                elif range_limit > 10:
+                    await bot.finish(ev, '只允许查询10个bp成绩')
+                elif max > 10:
+                    limit = 100
+                for i in result:
+                    osuid = i[0]
+            else:
+                await bot.finish(ev, '请输入正确的参数')
+        elif list_len > 2:
+            if '-' in num[-1]:
+                li = num[-1].split('-')
+                min = int(li[0])
+                max = int(li[1])
+                range_limit = max - min +1
+                if min >= max:
+                    await bot.finish(ev, '请输入正确的bp范围')
+                elif range_limit > 10:
+                    await bot.finish(ev, '只允许查询10个bp成绩')
+                elif max >= 10:
+                    limit = 100
+                osuid = ' '.join(num[1:-1])
+            else:
+                await bot.finish(ev, '请输入正确的参数')
+        else:
+            await bot.finish(ev, '请输入正确的参数')
+    elif list_len == 1:
+        if num[0].isdigit() and result:
+            if int(num[0]) <= 0 or int(num[0]) > 100:
+                await bot.finish(ev, '只允许查询bp 1-100 的成绩')
+            for i in result:
+                osuid = i[0]
+            bpnum = int(num[0])
+            limit = 100 if bpnum > 10 else 10
+        elif not result:
+            await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
+        else:
+            await bot.finish(ev, '请输入正确的参数')
+    elif list_len >= 2:
+        if num[-1].isdigit():
+            if int(num[-1]) <= 0 or int(num[-1]) > 100:
+                await bot.finish(ev, '只允许查询bp 1-100 的成绩')
+            osuid = ' '.join(num[:list_len-1])
+            bpnum = int(num[-1])
+            limit = 100 if bpnum > 10 else 10
+        else:
+            await bot.finish(ev, '请输入正确的参数')
+    osumod = 0
+
+    url = f'{osu_api}get_user_best?k={key}&u={osuid}&m={osumod}&limit={limit}'
+    if bpnum:
+        info = await draw_score(url, osuid, osumod, bpnum=bpnum)
+    else:
+        mid = mod[f'{osumod}']
+        info = await best_pfm(url, osuid, mid, min, max)
+    if info:
+        if 'API' in info:
+            await bot.send(ev, info)
+        else:
+            await bot.send(ev, info)
+    else:
+        info = '未知错误'
+        await bot.send(ev, info)
         
 @sv.on_prefix('bind')
 async def bind(bot, ev:CQEvent):
@@ -249,7 +332,8 @@ async def update(bot, ev:CQEvent):
             osuid = num[1]
         except:
             msg = '请输入更改的用户名！'
-        info = await select_info(osuid)
+        url = f'{osu_api}get_user?k={key}&u={osuid}&m=0'
+        info = await osuapi(url)
         if info:
             for i in info:
                 osunum = i['user_id']
@@ -270,17 +354,13 @@ async def update(bot, ev:CQEvent):
 async def mode(bot, ev:CQEvent):
     qqid = ev.user_id
     num = ev.message.extract_plain_text()
-    try:
-        num = int(num)
-    except:
-        await bot.finish(ev, '请输入正确的模式 0-3')
     sql = f'select * from userinfo where qqid = {qqid}'
     result = mysql(sql)
     if not result:
         msg = '该账号尚未绑定，请输入 bind 用户名 绑定账号'
     elif not num:
         msg = '请输入正确的模式 0-3'
-    elif num == 0 or num == 1 or num == 2 or num == 3:
+    elif num == '0' or num == '1' or num == '2' or num == '3':
         mid = mod[f'{num}']
         sql = f'update userinfo set osumod = {num} where qqid = {qqid}'
         result = mysql(sql)
@@ -296,17 +376,3 @@ async def mode(bot, ev:CQEvent):
 async def help(bot, ev:CQEvent):
     img = MessageSegment.image(f'file:///{os.path.abspath(osuhelp)}')
     await bot.send(ev, img)
-
-async def select_info(osuid):
-    url = f'{osu_api}get_user?k={key}&u={osuid}&m=0'
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as req:
-                info = req.json()
-    except:
-        msg = 'User API请求失败，请联系管理员'
-        return msg
-    if info:
-        return info
-    else:
-        return False
