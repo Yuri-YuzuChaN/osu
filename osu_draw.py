@@ -325,13 +325,17 @@ async def draw_info(osuid, osumod):
         msg = '未查询到该用户'
     return msg
 
-async def draw_score(url, username, osumod, mapid = 0):
+async def draw_score(url, username, osumod, mapid=0, bpnum=0):
     play_json = await osuapi(url)
     if 'API' in play_json:
         msg = play_json
     elif play_json:
-        s = play_json[0]
-        if not mapid:
+        if bpnum != 0:
+            p = bpnum - 1
+        else:
+            p = 0
+        s = play_json[p]
+        if mapid == 0:
             mapid = s['beatmap_id']
         uid = s['user_id']
         mods_num = int(s['enabled_mods'])
@@ -553,6 +557,27 @@ async def draw_score(url, username, osumod, mapid = 0):
         im.save(outputImage_path)
 
         msg = MessageSegment.image(f'file:///{os.path.abspath(outputPath + recent_img)}')
+    else:
+        msg = False
+    return msg
+
+async def best_pfm(url, osuid, osumod, min, max):
+    play_json = await osuapi(url)
+    bp = []
+    msg = ''
+    if 'API' in play_json:
+        msg = play_json
+    elif play_json:
+        bp.append(f"{osuid}'s Best Performance:\n{osumod} BP {min} - {max}")
+        msg = "".join(bp)
+        for num in range(min-1, max):
+            s = play_json[num]
+            pp = s['pp']
+            mapid = s['beatmap_id']
+            bp_msg = f'\nBP {num+1}  {pp}pp  id:{mapid}'
+            bp.append(bp_msg)
+            msg = "".join(bp)
+        return msg
     else:
         msg = False
     return msg
