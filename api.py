@@ -1,8 +1,8 @@
 import aiohttp
 
 def get_api():
-    api = ''
-    return api
+    apikey = ''
+    return apikey
 
 async def osuapi(url):
     try:
