@@ -13,7 +13,7 @@
 4. 在`config/__bot__.py`模块列表中添加`osu`
 5. 重启HoshinoBot
 
-**注：`pillow`需要高于等于8.0.0版本，`oppai`模块已自带**
+**注：`pillow`需要高于等于8.0.0版本，`oppai`模块已自带，Python必须为64 bit**
 ~~`oppai`在windows系统下需要`C++ 14.0`才可安装~~
 
 ## 指令说明
