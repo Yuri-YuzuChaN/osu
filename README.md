@@ -20,21 +20,21 @@
 
 - `[info]`查询自己的信息
 - `[info :mod]`查询自己在 mod 模式的信息
-- `[info user]`查询 user 
+- `[info user]`查询 user 的信息
 - `[info user :mod]`查询 user 在 mod 模式的信息
 - `[bind user]`绑定用户名 user
 - `[unbind]`解绑
 - `[mode mod]`更改默认查询的模式
 - `[update osuid user]`更改绑定的用户名 user
-- `[update icon]`更新头像和头图
+- `[update icon]`更新自己头像和头图
 - `[recent]`查询自己最近游玩的成绩
 - `[recent :mod]`查询自己最近游玩 mod 模式的成绩
 - `[recent user]`查询 user 最近游玩的成绩
 - `[recent user :mod]`查询 user 最近游玩 mod 模式的成绩
-- `[score mapid]`查询自己在该地图的成绩
-- `[score mapid :mod]`查询自己在该地图 mod 模式的成绩
-- `[score user mapid]`查询 user 在该地图的成绩
-- `[score user mapid :mod]`查询 user 在该地图 mod 模式的成绩
+- `[score mapid]`查询自己在 mapid 的成绩
+- `[score mapid :mod]`查询自己在 mapid  mod 模式的成绩
+- `[score user mapid]`查询 user 在 mapid 的成绩
+- `[score user mapid :mod]`查询 user 在 mapid  mod 模式的成绩
 - `[bp num]`查询自己bp榜第 num 的成绩
 - `[bp user num]`查询 user bp榜第 num 的成绩
 - `[bp list min-max]`查询自己bp榜第 min 到 max 的成绩
