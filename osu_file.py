@@ -39,7 +39,7 @@ async def Download(mapid):
         mystr = myzip.filename.split(".")
         myzip.extractall(mystr[0])
         myzip.close()
-        end = ['mp3','wav','mp4','avi','mov','ogg','osb']
+        end = ['mp3','wav','mp4','avi','mov','ogg','osb','flv']
         # 删除其余不需要的文件
         for root, dirs, files in os.walk(filepath[:-4], topdown=False):
             for name in files:
@@ -74,11 +74,12 @@ def get_file(path, version):
 
 # 获取version BG
 def get_picture(path):
+    p =[]
     with open(path, 'r', encoding='utf-8') as f:
         text = f.read()
-    result = re.finditer(r'\"(.+)\"', text)
+    result = re.finditer(r'\d,\d,\"(.+?)\"', text)
     for i in result:
-        return i.group().strip('"')
+        return i.groups()[0]
 
 #获取头像
 def get_user_icon(uid, update = False):
