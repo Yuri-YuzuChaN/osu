@@ -201,6 +201,8 @@ async def best(bot, ev:CQEvent):
                     await bot.finish(ev, '只允许查询10个bp成绩')
                 elif max > 10:
                     limit = 100
+                elif max <= 10:
+                    limit = 10
                 for i in result:
                     osuid = i[0]
             else:
@@ -215,8 +217,10 @@ async def best(bot, ev:CQEvent):
                     await bot.finish(ev, '请输入正确的bp范围')
                 elif range_limit > 10:
                     await bot.finish(ev, '只允许查询10个bp成绩')
-                elif max >= 10:
+                elif max > 10:
                     limit = 100
+                elif max <= 10:
+                    limit = 10
                 osuid = ' '.join(num[1:-1])
             else:
                 await bot.finish(ev, '请输入正确的参数')
