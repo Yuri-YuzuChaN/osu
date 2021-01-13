@@ -19,39 +19,46 @@
 ## 指令说明
 
 - `[info]`查询自己的信息
-- `[info :mod]`查询自己在 mod 模式的信息
+- `[info :mode]`查询自己在 mode 模式的信息
 - `[info user]`查询 user 的信息
-- `[info user :mod]`查询 user 在 mod 模式的信息
+- `[info user :mode]`查询 user 在 mode 模式的信息
 - `[bind user]`绑定用户名 user
 - `[unbind]`解绑
-- `[mode mod]`更改默认查询的模式
+- `[mode mode]`更改默认查询的模式
 - `[update osuid user]`更改绑定的用户名 user
 - `[update icon]`更新自己头像和头图
 - `[recent]`查询自己最近游玩的成绩
-- `[recent :mod]`查询自己最近游玩 mod 模式的成绩
+- `[recent :mode]`查询自己最近游玩 mode 模式的成绩
 - `[recent user]`查询 user 最近游玩的成绩
-- `[recent user :mod]`查询 user 最近游玩 mod 模式的成绩
+- `[recent user :mode]`查询 user 最近游玩 mode 模式的成绩
 - `[score mapid]`查询自己在 mapid 的成绩
-- `[score mapid :mod]`查询自己在 mapid  mod 模式的成绩
+- `[score mapid :mode]`查询自己在 mapid  mod 模式的成绩
 - `[score user mapid]`查询 user 在 mapid 的成绩
-- `[score user mapid :mod]`查询 user 在 mapid  mod 模式的成绩
+- `[score user mapid :mode]`查询 user 在 mapid  mode 模式的成绩
 - `[bp num]`查询自己bp榜第 num 的成绩
 - `[bp user num]`查询 user bp榜第 num 的成绩
 - `[bp list min-max]`查询自己bp榜第 min 到 max 的成绩
 - `[bp list user min-max]`查询 user bp榜第 min 到 max 的成绩
-- `mod` : `0 `std, `1` taiko, `2` ctb, `3` mania
+- `mode` : `0 `std, `1` taiko, `2` ctb, `3` mania
 
 **注：目前bug较多，尽量不要查询除std以外模式。发送的图片中的if fc pp可能有错误**
 
 ## 存在问题
 
 1. `pp计算`可能有错误
+2. 开启DT HR时OD计算可能有错误
 
-## 饼
+## 即将实现
 
-1. 成绩图的音乐时长
+1. fail成绩下的地图时长
 
 ## 更新说明
+
+**2021-01-13**
+1. 新增成绩信息的地图时长 **目前仅能显示pass成绩的时长，fail成绩还未实现**
+1. `bp`指令可查询其它模式 例:`bp3 list 1-6` 为 查询 `mania` 的bp 1-6，3为模式，可参考指令大全中的mode参数，如果单独bp3则与bp 3功能相同
+2. 修复个别用户没有自定义头图的情况下无法下载头图的问题
+3. 修复NC和DT共存的问题
 
 **2021-01-12**
 
