@@ -111,6 +111,8 @@ def get_user_header(uid, update = False):
     if result:
         for i in result:
             imgurl = i.group().split('"')[0]
+        else:
+            imgurl = 'osu.ppy.sh/images/headers/profile-covers/c1.jpg'
         url = f'https://{imgurl}'.replace('\\', '')
         img = requests.get(url)
         path = f'{usericon}{uid}_h.png'
