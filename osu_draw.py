@@ -265,8 +265,7 @@ async def draw_info(osuid, osumod):
         #经验百分比
         lv_p_list = lv.split('.')
         lv_p_num = lv_p_list[1]
-        if len(lv_p_num) > 4:
-            lv_p_num = lv_p_num[-3:]
+        lv_p_num = lv_p_num[:3] if len(lv_p_num) > 4 else lv_p_num
         lv_p_float = float(f'0.{lv_p_num}')
         #lv_p_float = float(f'0.{lv_p_list[1]}')
         w_lv_p = datatext(1060, 390, 20, f'{lv_p_float * 100}%', Exo2_Medium, anchor='rm')
@@ -353,6 +352,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         for i in beatmaps_json:
             bmapid = i['beatmapset_id']
             approved = i['approved']
+            total_len = i['total_length']
             artist = i['artist']
             title = i['title']
             creator = i['creator']
@@ -475,9 +475,12 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         im = draw_text(im, w_version)
         
         #BP,时长,MAR,OD,CS,HP
+        m_s_len = divmod(int(total_len), 60)
+        music_len = f'{m_s_len[0]}:{m_s_len[1]}'
+        play_len = music_len if rank != 'F' else '--'
         w_bpm = datatext(1455, 103, 22, bpm, Torus_Regular)
         im = draw_text(im, w_bpm, color=(255, 215, 0, 255))
-        w_time = datatext(1740, 103, 22, '--/--', Torus_Regular)
+        w_time = datatext(1740, 103, 22, f'{play_len} / {music_len}', Torus_Regular)
         im = draw_text(im, w_time, color=(255, 215, 0, 255))
         w_ar = datatext(1455, 194, 22, round(float(play_pp[2]), 1), Torus_Regular)
         im = draw_text(im, w_ar, color=(255, 215, 0, 255))
@@ -570,7 +573,7 @@ async def best_pfm(url, osuid, osumod, min, max):
     elif play_json:
         bp.append(f"{osuid}'s Best Performance:\n{osumod} BP {min} - {max}")
         msg = "".join(bp)
-        for num in range(min-1, max):
+        for num in range(max):
             s = play_json[num]
             pp = s['pp']
             mapid = s['beatmap_id']
