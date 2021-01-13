@@ -182,6 +182,13 @@ async def score(bot, ev:CQEvent):
 async def best(bot, ev:CQEvent):
     qqid = ev.user_id
     num = ev.message.extract_plain_text().strip().split(' ')
+    osumod = 0
+    if '' in num:
+        num.remove('')
+    if len(num) != 1:
+        if num[0] == '1' or num[0] == '2' or num[0] == '3':
+            osumod = num[0]
+            del num[0]
     if '' in num:
         num.remove('')
     bpnum = ''
@@ -247,7 +254,6 @@ async def best(bot, ev:CQEvent):
             limit = 100 if bpnum > 10 else 10
         else:
             await bot.finish(ev, '请输入正确的参数')
-    osumod = 0
 
     url = f'{osu_api}get_user_best?k={key}&u={osuid}&m={osumod}&limit={limit}'
     if bpnum:
