@@ -24,7 +24,7 @@ async def Download(mapid):
                 return f'{mapfile}{file}'
         continue
     else:
-        url = f'https://txy1.sayobot.cn/beatmaps/download/full/{mapid}'
+        url = f'https://txy1.sayobot.cn/beatmaps/download/novideo/{mapid}'
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, allow_redirects = False) as re:
@@ -53,13 +53,14 @@ async def Download(mapid):
         
 async def get_osz(sayo):
     try:
-        print('开始下载')
+        print('开始下载地图')
         async with aiohttp.ClientSession() as session:
             async with session.get(sayo) as req:
                 title = req.headers['Content-Disposition'].split('"')
                 filename = parse.unquote(title[1])
                 chunk = await req.read()
                 open(f'{mapfile}{filename}', 'wb').write(chunk)
+        print('地图下载完毕')
         return filename
     except:
         print('地图下载失败')
