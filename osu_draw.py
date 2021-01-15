@@ -258,19 +258,17 @@ async def draw_info(osuid, osumod):
         im = draw_text(im, w_pp)
 
         #等级
-        lv_int = re.findall(r'\d+(?=\.\d+)', lv)
-        w_lv = datatext(1115.5, 365, 30, lv_int[0], Exo2_Medium, anchor='mm')
+        lv_list = lv.split('.')
+        w_lv = datatext(1115.5, 365, 30, lv_list[0], Exo2_Medium, anchor='mm')
         im = draw_text(im, w_lv)
         
         #经验百分比
-        lv_p_list = lv.split('.')
-        lv_p_num = lv_p_list[1]
-        lv_p_num = lv_p_num[:3] if len(lv_p_num) > 4 else lv_p_num
-        lv_p_float = float(f'0.{lv_p_num}')
-        #lv_p_float = float(f'0.{lv_p_list[1]}')
-        w_lv_p = datatext(1060, 390, 20, f'{lv_p_float * 100}%', Exo2_Medium, anchor='rm')
+        lv_list[0] = '0'
+        lv_num = float('.'.join(lv_list))
+        lv_num_p = format(lv_num, '.0%')
+        w_lv_p = datatext(1060, 390, 20, lv_num_p, Exo2_Medium, anchor='rm')
         im = draw_text(im, w_lv_p)
-        lv_p = Image.new('RGBA', (int(400 * lv_p_float), 8), '#FF66AE')
+        lv_p = Image.new('RGBA', (int(400 * lv_num), 8), '#FF66AE')
         lv_p_img = draw_fillet(lv_p, 4)
         im.alpha_composite(lv_p_img, (662, 370))
 
@@ -309,8 +307,8 @@ async def draw_info(osuid, osumod):
         
         #游玩时间
         sec = timedelta(seconds = int(play_time))
-        d_time = datetime(1,1,1) + sec
-        t_time = "%dD %dH %dM" % (d_time.day-1, d_time.hour, d_time.minute)
+        d_time = datetime(1, 1, 1, 1) + sec
+        t_time = "%dd %dh %dm %ds" % (d_time.day-1, d_time.hour, d_time.minute, d_time.second)
         w_time = datatext(1180, 806, 32, t_time, Exo2_Medium, anchor='rm')
         im = draw_text(im, w_time)
 
@@ -359,7 +357,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
             bpm = i['bpm']
             version = i['version']
             stars = float(i['difficultyrating'])
-            map_cb = i['max_combo']
+            map_maxcb = int(i['max_combo'])
         
         # 下载地图并获取地图路径
         dirpath = await Download(bmapid)
@@ -475,9 +473,19 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         im = draw_text(im, w_version)
         
         #BP,时长,MAR,OD,CS,HP
-        m_s_len = divmod(int(total_len), 60)
-        music_len = f'{m_s_len[0]}:{m_s_len[1]}'
-        play_len = music_len if rank != 'F' else '--'
+        #谱面时长
+        map_len = list(divmod(int(total_len), 60))
+        map_len[1] = map_len[1] if map_len[1] >= 10 else f'0{map_len[1]}'
+        music_len = f'{map_len[0]}:{map_len[1]}'
+        if rank == 'F':
+            play_seconds = calc_time(ver_file, c50, c100, c300, cmiss)
+            game_len = list(divmod((play_seconds / 1000), 60))
+            game_len[1] = game_len[1] if game_len[1] >= 10 else f'0{game_len[1]}'
+            gaming_len = f'{game_len[0]}:{game_len[1]}'
+            play_len = gaming_len
+        else:
+            play_len = music_len
+        
         w_bpm = datatext(1455, 103, 22, bpm, Torus_Regular)
         im = draw_text(im, w_bpm, color=(255, 215, 0, 255))
         w_time = datatext(1740, 103, 22, f'{play_len} / {music_len}', Torus_Regular)
@@ -504,7 +512,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         im = draw_text(im, w_pp, color=(255, 106, 178, 255))
 
         #if fc pp
-        if_pp = calc_if(ver_file, mods_num, c50, c100)
+        if_pp = calc_if(ver_file, mods_num, c50, c100, map_maxcb)
         w_if_pp = datatext(105, 540, 26, f'{int(if_pp)}pp', Torus_Regular)
         im = draw_text(im, w_if_pp, color=(255, 106, 178, 255))
 
@@ -551,7 +559,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         im = draw_text(im, w_maxcb, color=(245, 117, 104, 255))
         w_maxcb = datatext(1600, 950, 45, '/', Torus_Regular, anchor='mm')
         im = draw_text(im, w_maxcb)
-        w_mapcb = datatext(1610, 950, 45, f'{map_cb}x', Torus_Regular, anchor='lm')
+        w_mapcb = datatext(1610, 950, 45, f'{map_maxcb}x', Torus_Regular, anchor='lm')
         im = draw_text(im, w_mapcb, color=(117, 248, 87, 255))
 
         #保存输出
