@@ -7,14 +7,13 @@
 ## 使用方法
 
 1. 将该项目放在HoshinoBot插件目录 `modules` 下，或者clone本项目 `git clone https://github.com/Yuri-YuzuChaN/osu`
-2. ~~在`config.json`文件中添加`apikey`，mysql数据库地址`sql_host`，数据库名`sql_name`、表名`sql_table`、用户名`sql_user`和密码`sql_pwd`，根据自己的机器配置填入~~
-3. 在`api.py`填入申请的`apikey`
-4. pip以下依赖：`pillow` ~~`oppai`~~
-5. 在`config/__bot__.py`模块列表中添加`osu`
-6. 重启HoshinoBot
+2. 在`api.py`填入申请的`apikey`
+3. pip以下依赖：`pillow`，`oppai`
+4. 在`config/__bot__.py`模块列表中添加`osu`
+5. 重启HoshinoBot
 
-**注：`pillow`需要高于等于8.0.0版本，`oppai`模块已自带，`oppai`目前必须在`py38 64bit`环境下才可运行**
-~~`oppai`在windows系统下需要`C++ 14.0`才可安装~~
+**注：`pillow`需要高于等于8.0.0版本，Windows环境下`oppai`模块已自带，`oppai`目前必须在`py38 64bit`环境下才可运行**
+**如果环境为Linux，请`pip install oppai`，并将`osu_pp.py`中`.oppai.oppai`改为`oppai`**
 
 ## 指令说明
 
@@ -40,23 +39,30 @@
 - `[bp list min-max]`查询自己bp榜第 min 到 max 的成绩
 - `[bp list user min-max]`查询 user bp榜第 min 到 max 的成绩
 - `mode` : `0 `std, `1` taiko, `2` ctb, `3` mania
+- bp扩展 `bp`: std, `bp1`: taiko, `bp2`: ctb, `bp3`: mania
 
-**注：目前bug较多，尽量不要查询除std以外模式。发送的图片中的if fc pp可能有错误**
+**注：目前bug较多，尽量不要查询除std以外模式**
 
 ## 存在问题
 
-1. `pp计算`可能有错误
-2. 开启DT HR时OD计算可能有错误
+1. 开启DT HR时OD计算可能有错误
 
 ## 即将实现
 
-1. fail成绩下的地图时长
+1. pp+数据
+2. 查询某张地图的信息
 
 ## 更新说明
 
+**2021-01-15**
+
+1. 新增成绩信息包括Fail成绩的地图时长
+2. 修复ifpp计算错误的问题
+
 **2021-01-13**
-1. *新增成绩信息的地图时长 **目前仅能显示pass成绩的时长，fail成绩还未实现**
-2. *`bp`指令可查询其它模式 **例:`bp3 list 1-6` 为 查询 `mania` 的bp 1-6，`bp3`中的`3`为模式，可参考指令大全中的`mode`参数，如果单独输入bp3功能与bp 3相同**
+
+1. 新增成绩信息的地图时长
+2. `bp`指令可查询其它模式 
 3. 修复个别用户没有自定义头图的情况下无法下载头图的问题
 4. 修复NC和DT共存的问题
 
@@ -68,7 +74,7 @@
 
 **2021-01-11**
 
-1. 插件已自带pp计算模块`oppai`，需在`py38 64bit`环境下才可运行
+1. 插件已自带pp计算模块`oppai`，需在`py38 64bit`环境下才可运行，Linux环境请查看使用方法
 2. 修复`mode`指令错误的问题
 
 **2021-01-09**
