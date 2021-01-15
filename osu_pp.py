@@ -57,12 +57,20 @@ def calculation_pp(osufile, mods_num, maxcb, c50, c100, c300, miss):
     ezpp_free(map)
     return map_stars, cs, ar, od, hp, play_pp, aim_pp, speed_pp, acc_pp, acc
 
-def calc_if(osufile, mods_num, c50, c100):
+def calc_if(osufile, mods_num, c50, c100, mapcb):
     map = ezpp_new()
     ezpp_set_autocalc(map, 1)
     ezpp_dup(map, osufile)
     ezpp_set_mods(map, mods_num)
+    ezpp_set_combo(map, mapcb)
     ezpp_set_accuracy(map, c100, c50)
     if_pp = ezpp_pp(map)
     ezpp_free(map)
     return if_pp
+
+def calc_time(osufile, c50, c100, c300, miss):
+    setcb = c50 + c100 + c300 + miss
+    map = ezpp_new()
+    ezpp_dup(map, osufile)
+    play_time = ezpp_time_at(map, setcb)
+    return play_time
