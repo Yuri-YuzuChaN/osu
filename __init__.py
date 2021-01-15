@@ -162,6 +162,8 @@ async def score(bot, ev:CQEvent):
             osumod = num[-1][1]
         else:
             await bot.finish(ev, '请输入正确的地图ID！')
+    else:
+        await bot.finish(ev, '请输入正确的地图ID！')
 
     url = f'{osu_api}get_scores?k={key}&b={mapid}&u={osuid}&m={osumod}'
     msg = await draw_score(url, osuid, osumod, mapid=mapid)
@@ -175,7 +177,7 @@ async def score(bot, ev:CQEvent):
             id = '您'
         else:
             id = osuid
-        num = f'{id}在该图未有游玩记录！'
+        num = f'{id} 在该图未有游玩记录！'
         await bot.send(ev, msg)
         
 @sv.on_prefix('bp')
@@ -189,8 +191,6 @@ async def best(bot, ev:CQEvent):
         if num[0] == '1' or num[0] == '2' or num[0] == '3':
             osumod = num[0]
             del num[0]
-    if '' in num:
-        num.remove('')
     bpnum = ''
     sql = f'select osuname from userinfo where qqid = {qqid}'
     result = mysql(sql)
@@ -212,8 +212,8 @@ async def best(bot, ev:CQEvent):
                     limit = 10
                 for i in result:
                     osuid = i[0]
-            else:
-                await bot.finish(ev, '请输入正确的参数')
+            elif not result:
+                await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
         elif list_len > 2:
             if '-' in num[-1]:
                 li = num[-1].split('-')
