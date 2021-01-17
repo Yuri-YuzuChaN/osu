@@ -479,7 +479,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         music_len = f'{map_len[0]}:{map_len[1]}'
         if rank == 'F':
             play_seconds = calc_time(ver_file, c50, c100, c300, cmiss)
-            game_len = list(divmod((play_seconds / 1000), 60))
+            game_len = list(divmod(int(play_seconds / 1000), 60))
             game_len[1] = game_len[1] if game_len[1] >= 10 else f'0{game_len[1]}'
             gaming_len = f'{game_len[0]}:{game_len[1]}'
             play_len = gaming_len
