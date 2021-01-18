@@ -1,6 +1,6 @@
-# osu
+# 该项目pp计算模块已过期，16号osu更新pp算法，需等待`oppai`模块更新，模块更新后第一时间更新本项目
 
-NMD刚做的差不多了，16号就更新pp算法，`oppai`模块又得等更新
+# osu
 
 基于HoshinoBot v2的osu查询模块
 
