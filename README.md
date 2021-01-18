@@ -1,5 +1,5 @@
-# 该项目pp计算模块已过期，16号osu更新pp算法，需等待`oppai`模块更新，模块更新后第一时间更新本项目
-
+## 该项目pp计算模块已过期，16号osu更新pp算法，需等待`oppai`模块更新，模块更新后第一时间更新本项目
+osu update ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-updates
 # osu
 
 基于HoshinoBot v2的osu查询模块
