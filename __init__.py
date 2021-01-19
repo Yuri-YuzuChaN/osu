@@ -8,7 +8,7 @@ import json
 
 from .osusql import mysql
 from .api import get_api, osuapi
-from .osu_draw import draw_info, draw_score, best_pfm
+from .osu_draw import draw_info, draw_score, best_pfm, map_info
 from .osu_file import get_user_icon, get_user_header
 
 osupath = os.path.dirname(__file__)
@@ -128,7 +128,7 @@ async def score(bot, ev:CQEvent):
     num = ev.message.extract_plain_text().strip().split(' ')
     if '' in num:
         num.remove('')
-    sql = f'select osuid,osumod,osuname from userinfo where qqid = {qqid}'
+    sql = f'select osuname,osumod from userinfo where qqid = {qqid}'
     result = mysql(sql)
     list_len = len(num)
     if list_len == 1:
@@ -268,6 +268,25 @@ async def best(bot, ev:CQEvent):
             await bot.send(ev, info)
     else:
         info = '未知错误'
+        await bot.send(ev, info)
+  
+@sv.on_prefix('map')
+async def mapinfo(bot, ev:CQEvent):
+    mapid = ev.message.extract_plain_text().strip()
+    if not mapid:
+        await bot.finish(ev, '请输入地图ID')
+    elif not mapid.isdigit():
+        await bot.finish(ev, '请输入正确的地图ID')
+    else:
+        url = f'{osu_api}get_beatmaps?k={key}&b={mapid}&m=0'
+    info = await map_info(url, mapid)
+    if info:
+        if 'API' in info:
+            await bot.send(ev, info)
+        else:
+            await bot.send(ev, info)
+    else:
+        info = '未查询到该地图'
         await bot.send(ev, info)
         
 @sv.on_prefix('bind')
