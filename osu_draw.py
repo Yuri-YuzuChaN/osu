@@ -26,7 +26,7 @@ Torus_Regular = os.path.join(imagePath, 'fonts', 'Torus Regular.otf')
 Torus_SemiBold = os.path.join(imagePath, 'fonts', 'Torus SemiBold.otf')
 
 key = get_api()
-approved_num = {'-2' : 'graveyard', '-1' : 'WIP', '0' : 'pending', '1' : 'ranked', '2' : 'approved', '3' : 'qualified', '4' : 'loved'}
+approved_num = {'-2' : 'Graveyard', '-1' : 'WIP', '0' : 'Pending', '1' : 'Ranked', '2' : 'Approved', '3' : 'Qualified', '4' : 'Loved'}
 mod = { '0' : 'std', '1' : 'taiko', '2' : 'ctb', '3' : 'mania'}
 api = 'https://osu.ppy.sh/api/'
 
@@ -361,7 +361,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         
         # 下载地图并获取地图路径
         dirpath = await Download(bmapid)
-
+        
         # 获取开启的mod
         mods = resolve(mods_num)
 
@@ -369,11 +369,12 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         ver_file = get_file(dirpath, version)
 
         # 计算该地图的pp
-        map_pp = calculation_acc_pp(ver_file, mods_num)
-
-        # 计算该次游玩的pp
-        play_pp = calculation_pp(ver_file, mods_num, maxcb, c50, c100, c300, cmiss)
+        map_pp = calc_acc_pp(ver_file, mods_num)
         
+        # 计算该次游玩的pp
+        play_pp = calc_pp(ver_file, mods_num, maxcb, c50, c100, c300, cmiss)
+        
+        #获取BG
         map_bg = get_picture(ver_file)
         map_path = f'{dirpath}/{map_bg}'
 
@@ -485,7 +486,6 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
             play_len = gaming_len
         else:
             play_len = music_len
-        
         w_bpm = datatext(1455, 103, 22, bpm, Torus_Regular)
         im = draw_text(im, w_bpm, color=(255, 215, 0, 255))
         w_time = datatext(1740, 103, 22, f'{play_len} / {music_len}', Torus_Regular)
@@ -589,6 +589,63 @@ async def best_pfm(url, osuid, osumod, min, max):
             bp.append(bp_msg)
             msg = "".join(bp)
         return msg
+    else:
+        msg = False
+    return msg
+
+async def map_info(url, mapid):
+    map_json = await osuapi(url)
+    info = []
+    msg = ''
+    if 'API' in map_json:
+        msg = map_json
+    elif map_json:
+        for i in map_json:
+            bmapid = i['beatmapset_id']
+            approved = i['approved']
+            total_len = i['total_length']
+            artist = i['artist_unicode']
+            title = i['title_unicode']
+            cs = i['diff_size']
+            ar = i['diff_approach']
+            od = i['diff_overall']
+            hp = i['diff_drain']
+            mode = i['mode']
+            app_date = i['approved_date']
+            creator = i['creator']
+            bpm = i['bpm']
+            source = i['source']
+            if source == '':
+                source = 'Nothing'
+            version = i['version']
+            stars = float(i['difficultyrating'])
+            map_cb = i['max_combo']
+        
+        dirpath = await Download(bmapid)
+        ver_file = get_file(dirpath, version)
+        if mode == '0':
+            map_pp = round(calc_acc_pp(ver_file, 0)[5], 2)
+        else:
+            map_pp = 'Std Only'
+
+        map_len = list(divmod(int(total_len), 60))
+        map_len[1] = map_len[1] if map_len[1] >= 10 else f'0{map_len[1]}'
+        music_len = f'{map_len[0]}:{map_len[1]}'
+
+        app_num = approved_num[f'{approved}']
+        stars = round(stars, 2)
+
+        info.append(f'Query Map: {mapid}\n')
+        info.append(f'Title: {title}\n')
+        info.append(f'Artist: {artist}\n')
+        info.append(f'Source: {source}\n')
+        info.append(f'State: {app_num} | Song length: {music_len}\n')
+        info.append(f'Version: {version} | Maper: {creator}\n')
+        info.append(f'Approved Time: {app_date}\n')
+        info.append(f'Stars: {stars} | CS: {cs} | AR: {ar} | OD: {od} | HP: {hp} | BPM: {bpm}\n')
+        info.append(f'Max Combo: {map_cb} | SS PP: {map_pp}')
+
+        msg = ''.join(info)
     else:
         msg = False
     return msg
