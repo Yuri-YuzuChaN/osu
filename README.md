@@ -37,6 +37,7 @@ pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-upd
 - `[score mapid :mode]`查询自己在 mapid  mod 模式的成绩
 - `[score user mapid]`查询 user 在 mapid 的成绩
 - `[score user mapid :mode]`查询 user 在 mapid  mode 模式的成绩
+- `[map mapid]`查询 mapid 地图的信息
 - `[bp num]`查询自己bp榜第 num 的成绩
 - `[bp user num]`查询 user bp榜第 num 的成绩
 - `[bp list min-max]`查询自己bp榜第 min 到 max 的成绩
@@ -56,6 +57,9 @@ pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-upd
 2. 查询某张地图的信息
 
 ## 更新说明
+
+**2021-1-19**
+1. 新增查询地图信息指令`map`
 
 **2021-01-15**
 
