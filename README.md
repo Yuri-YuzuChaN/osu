@@ -10,7 +10,7 @@ pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-upd
 ## 使用方法
 
 1. 将该项目放在HoshinoBot插件目录 `modules` 下，或者clone本项目 `git clone https://github.com/Yuri-YuzuChaN/osu`
-2. 在`api.py`填入申请的`apikey`
+2. 在`api.py`填入申请的`apikey`，`apikey`申请地址：https://osu.ppy.sh/p/api/
 3. pip以下依赖：`pillow`，`oppai`
 4. 在`config/__bot__.py`模块列表中添加`osu`
 5. 重启HoshinoBot
@@ -58,7 +58,10 @@ pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-upd
 
 ## 更新说明
 
-**2021-1-19**
+**2021-01-21**
+1. 更新致命bug，获取osz文件失败，在计算PP的时候，导致bot程序退出的问题，必须更新
+
+**2021-01-19**
 1. 新增查询地图信息指令`map`
 
 **2021-01-15**
