@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import re
 import aiohttp
 import asyncio
+import traceback
 
 from .osu_file import Download, get_file, get_picture, get_user_icon, get_user_header
 from .api import *
@@ -366,7 +367,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         mods = resolve(mods_num)
 
         # 获取version地图文件
-        ver_file = get_file(dirpath, version)
+        ver_file = get_file(dirpath, mapid)
 
         # 计算该地图的pp
         map_pp = calc_acc_pp(ver_file, mods_num)
@@ -620,9 +621,9 @@ async def map_info(url, mapid):
             version = i['version']
             stars = float(i['difficultyrating'])
             map_cb = i['max_combo']
-        
+
         dirpath = await Download(bmapid)
-        ver_file = get_file(dirpath, version)
+        ver_file = get_file(dirpath, mapid)
         if mode == '0':
             map_pp = round(calc_acc_pp(ver_file, 0)[5], 2)
         else:
