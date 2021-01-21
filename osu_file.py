@@ -67,11 +67,17 @@ async def get_osz(sayo):
         return
 
 # 获取version文件
-def get_file(path, version):
+def get_file(path, mapid):
     for file in os.listdir(path):
-        if version in file:
-            filepath = f'{path}/{file}'
-            return filepath
+        if '.osu' in file:
+            with open(f'{path}/{file}', 'r', encoding='utf-8') as f:
+                text = f.read()
+            result = re.finditer(r'BeatmapID:(.+)', text)
+            for i in result:
+                rmapid = i.groups()[0]
+            if mapid == rmapid:
+                filepath = f'{path}/{file}'
+                return filepath
 
 # 获取version BG
 def get_picture(path):
