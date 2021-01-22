@@ -54,7 +54,6 @@ pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-upd
 ## 即将实现
 
 1. pp+数据
-2. 查询某张地图的信息
 
 ## 更新说明
 
