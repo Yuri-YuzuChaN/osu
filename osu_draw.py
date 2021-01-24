@@ -367,7 +367,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         mods = resolve(mods_num)
 
         # 获取version地图文件
-        ver_file = get_file(dirpath, mapid)
+        ver_file = get_file(dirpath, mapid, version)
 
         # 计算该地图的pp
         map_pp = calc_acc_pp(ver_file, mods_num)
