@@ -73,9 +73,17 @@ def get_file(path, mapid):
             with open(f'{path}/{file}', 'r', encoding='utf-8') as f:
                 text = f.read()
             result = re.finditer(r'BeatmapID:(.+)', text)
-            for i in result:
-                rmapid = i.groups()[0]
-            if mapid == rmapid:
+            try:
+                for i in result:
+                    rmapid = i.groups()[0]
+                if mapid == rmapid:
+                    filepath = f'{path}/{file}'
+                    return filepath
+            except:
+                continue
+    else:
+        for file in os.listdir(path):
+            if version in file:
                 filepath = f'{path}/{file}'
                 return filepath
 
