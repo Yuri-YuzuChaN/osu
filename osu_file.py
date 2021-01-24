@@ -67,7 +67,7 @@ async def get_osz(sayo):
         return
 
 # 获取version文件
-def get_file(path, mapid):
+def get_file(path, mapid, version):
     for file in os.listdir(path):
         if '.osu' in file:
             with open(f'{path}/{file}', 'r', encoding='utf-8') as f:
