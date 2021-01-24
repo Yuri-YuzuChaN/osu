@@ -623,7 +623,7 @@ async def map_info(url, mapid):
             map_cb = i['max_combo']
 
         dirpath = await Download(bmapid)
-        ver_file = get_file(dirpath, mapid)
+        ver_file = get_file(dirpath, mapid, version)
         if mode == '0':
             map_pp = round(calc_acc_pp(ver_file, 0)[5], 2)
         else:
