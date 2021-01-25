@@ -16,6 +16,7 @@ pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-upd
 5. 重启HoshinoBot
 
 **注：`pillow`需要高于等于8.0.0版本，Windows环境下`oppai`模块已自带，`oppai`目前必须在`py38 64bit`环境下才可运行**
+
 **如果环境为Linux，请`pip install oppai`，并将`osu_pp.py`中`.oppai.oppai`改为`oppai`**
 
 ## 指令说明
@@ -26,7 +27,7 @@ pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-upd
 - `[info user :mode]`查询 user 在 mode 模式的信息
 - `[bind user]`绑定用户名 user
 - `[unbind]`解绑
-- `[mode mode]`更改默认查询的模式
+- `[update mode mode]`更改默认查询的模式
 - `[update osuid user]`更改绑定的用户名 user
 - `[update icon]`更新自己头像和头图
 - `[recent]`查询自己最近游玩的成绩
@@ -45,18 +46,22 @@ pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-upd
 - `mode` : `0 `std, `1` taiko, `2` ctb, `3` mania
 - bp扩展 `bp`: std, `bp1`: taiko, `bp2`: ctb, `bp3`: mania
 
-**注：目前bug较多，尽量不要查询除std以外模式**
+**除`std`模式外，查询其它模式需带上`mode`**
 
 ## 存在问题
 
 1. 开启DT HR时OD计算可能有错误
-2. 解压osz文件不完整
+2. 解压osz文件不完整，该问题为个例，需手动解压
 
 ## 即将实现
 
-1. pp+数据
+1. ~~pp+数据~~
 
 ## 更新说明
+
+**2021-01-25**
+1. 可以查询其它模式
+2. 修改更改默认查询的模式的指令，现指令为`update mode mode`
 
 **2021-01-24**
 1. 修复大部分旧地图获取不到文件的问题
