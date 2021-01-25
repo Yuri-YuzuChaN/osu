@@ -324,6 +324,8 @@ async def draw_info(osuid, osumod):
     return msg
 
 async def draw_score(url, username, osumod, mapid=0, bpnum=0):
+    map_pp = []
+    play_pp = []
     play_json = await osuapi(url)
     if 'API' in play_json:
         msg = play_json
@@ -335,6 +337,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         s = play_json[p]
         if mapid == 0:
             mapid = s['beatmap_id']
+        pp = float(s['pp'])
         uid = s['user_id']
         mods_num = int(s['enabled_mods'])
         score = s['score']
@@ -346,7 +349,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         date = s['date']
         rank = s['rank']
         
-        url_ = f'{api}get_beatmaps?k={key}&b={mapid}&m={osumod}'
+        url_ = f'{api}get_beatmaps?k={key}&b={mapid}'
         beatmaps_json = await osuapi(url_)
         for i in beatmaps_json:
             bmapid = i['beatmapset_id']
@@ -355,10 +358,17 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
             artist = i['artist']
             title = i['title']
             creator = i['creator']
+            cs = i['diff_size']
+            ar = i['diff_approach']
+            od = i['diff_overall']
+            hp = i['diff_drain']
             bpm = i['bpm']
             version = i['version']
             stars = float(i['difficultyrating'])
-            map_maxcb = int(i['max_combo'])
+            if osumod == '3':
+                map_maxcb = i['max_combo']
+            else:
+                map_maxcb = int(i['max_combo'])
         
         # 下载地图并获取地图路径
         dirpath = await Download(bmapid)
@@ -370,11 +380,18 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         ver_file = get_file(dirpath, mapid, version)
 
         # 计算该地图的pp
-        map_pp = calc_acc_pp(ver_file, mods_num)
+        if osumod == 0:
+            map_pp = calc_acc_pp(ver_file, mods_num)
         
         # 计算该次游玩的pp
-        play_pp = calc_pp(ver_file, mods_num, maxcb, c50, c100, c300, cmiss)
-        
+            play_pp = calc_pp(ver_file, mods_num, maxcb, c50, c100, c300, cmiss)
+        else:
+            a = 0
+            while a < 6:
+                map_pp.append('--')
+                a+=1
+            play_pp = [stars, cs, ar, od, hp, pp, '--', '--', '--', '--']
+            
         #获取BG
         map_bg = get_picture(ver_file)
         map_path = f'{dirpath}/{map_bg}'
@@ -513,28 +530,31 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         im = draw_text(im, w_pp, color=(255, 106, 178, 255))
 
         #if fc pp
-        if_pp = calc_if(ver_file, mods_num, c50, c100, map_maxcb)
-        w_if_pp = datatext(105, 540, 26, f'{int(if_pp)}pp', Torus_Regular)
+        if osumod != '0':
+            if_pp = '--'
+        else:
+            if_pp = int(calc_if(ver_file, mods_num, c50, c100, map_maxcb))
+        w_if_pp = datatext(105, 540, 26, f'{if_pp}pp', Torus_Regular)
         im = draw_text(im, w_if_pp, color=(255, 106, 178, 255))
 
         #95-100% pp
-        w_95pp = datatext(50, 610, 30, f'{int(map_pp[0])}pp', Torus_Regular)
+        w_95pp = datatext(50, 610, 30, f'{map_pp[0]}pp', Torus_Regular)
         im = draw_text(im, w_95pp, color=(255, 106, 178, 255))
-        w_97pp = datatext(190, 610, 30, f'{int(map_pp[2])}pp', Torus_Regular)
+        w_97pp = datatext(190, 610, 30, f'{map_pp[2]}pp', Torus_Regular)
         im = draw_text(im, w_97pp, color=(255, 106, 178, 255))
-        w_98pp = datatext(330, 610, 30, f'{int(map_pp[3])}pp', Torus_Regular)
+        w_98pp = datatext(330, 610, 30, f'{map_pp[3]}pp', Torus_Regular)
         im = draw_text(im, w_98pp, color=(255, 106, 178, 255))
-        w_99pp = datatext(468, 610, 30, f'{int(map_pp[4])}pp', Torus_Regular)
+        w_99pp = datatext(468, 610, 30, f'{map_pp[4]}pp', Torus_Regular)
         im = draw_text(im, w_99pp, color=(255, 106, 178, 255))
-        w_100pp = datatext(607, 610, 30, f'{int(map_pp[5])}pp', Torus_Regular)
+        w_100pp = datatext(607, 610, 30, f'{map_pp[5]}pp', Torus_Regular)
         im = draw_text(im, w_100pp, color=(255, 106, 178, 255))
 
         #aim,speed,acc pp
-        w_aim_pp = datatext(1533, 610, 30, f'{int(play_pp[6])}pp', Torus_Regular)
+        w_aim_pp = datatext(1533, 610, 30, f'{play_pp[6]}pp', Torus_Regular)
         im = draw_text(im, w_aim_pp, color=(255, 106, 178, 255))
-        w_speed_pp = datatext(1673, 610, 30, f'{int(play_pp[7])}pp', Torus_Regular)
+        w_speed_pp = datatext(1673, 610, 30, f'{play_pp[7]}pp', Torus_Regular)
         im = draw_text(im, w_speed_pp, color=(255, 106, 178, 255))
-        w_acc_pp = datatext(1813, 610, 30, f'{int(play_pp[8])}pp', Torus_Regular)
+        w_acc_pp = datatext(1813, 610, 30, f'{play_pp[8]}pp', Torus_Regular)
         im = draw_text(im, w_acc_pp, color=(255, 106, 178, 255))
 
         #分数
@@ -542,7 +562,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         im = draw_text(im, w_score)
 
         # acc
-        w_acc = datatext(350, 950, 45, f'{round(float(play_pp[9]), 2)}%', Torus_Regular, anchor='mm')
+        w_acc = datatext(350, 950, 45, f'{play_pp[9]}%', Torus_Regular, anchor='mm')
         im = draw_text(im, w_acc, color=(255, 215, 0, 255))
 
         # 300,100,50,miss
@@ -621,7 +641,7 @@ async def map_info(url, mapid):
             version = i['version']
             stars = float(i['difficultyrating'])
             map_cb = i['max_combo']
-
+        
         dirpath = await Download(bmapid)
         ver_file = get_file(dirpath, mapid, version)
         if mode == '0':
@@ -636,7 +656,7 @@ async def map_info(url, mapid):
         app_num = approved_num[f'{approved}']
         stars = round(stars, 2)
 
-        info.append(f'Query Map: {mapid}\n')
+        info.append(f'Query Map: {mapid} | Mode: {mod[mode].capitalize()}\n')
         info.append(f'Title: {title}\n')
         info.append(f'Artist: {artist}\n')
         info.append(f'Source: {source}\n')
