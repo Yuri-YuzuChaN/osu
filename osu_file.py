@@ -51,7 +51,7 @@ async def Download(mapid):
         os.remove(filepath)
         return filepath[:-4]
         
-async def get_osz(sayo):
+async def get_osz(sayo, mapid):
     try:
         print('Start Downloading Map')
         async with aiohttp.ClientSession() as session:
