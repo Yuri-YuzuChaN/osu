@@ -51,7 +51,6 @@ pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-upd
 ## 存在问题
 
 1. 开启DT HR时OD计算可能有错误
-2. 解压osz文件不完整，该问题为个例，需手动解压
 
 ## 即将实现
 
