@@ -12,8 +12,8 @@ from urllib import parse
 
 osupath = os.path.dirname(__file__)
 osufile = f'{osupath}/OsuFile/'
-mapfile = f'{osufile}/map/'
-usericon = f'{osufile}/user_icon/'
+mapfile = f'{osufile}map/'
+usericon = f'{osufile}user_icon/'
 
 async def Download(mapid):
     # 判断是否存在该文件
@@ -30,9 +30,9 @@ async def Download(mapid):
                 async with session.get(url, allow_redirects = False) as re:
                     sayo = re.headers['Location']
         except:
-            print('请求失败或超时')
+            print('Request Failed or Timeout')
             return
-        filename = await get_osz(sayo)
+        filename = await get_osz(sayo, mapid)
         filepath = mapfile + filename
         # 解压下载的osz文件
         myzip = zipfile.ZipFile(filepath)
@@ -53,17 +53,18 @@ async def Download(mapid):
         
 async def get_osz(sayo):
     try:
-        print('开始下载地图')
+        print('Start Downloading Map')
         async with aiohttp.ClientSession() as session:
             async with session.get(sayo) as req:
-                title = req.headers['Content-Disposition'].split('"')
-                filename = parse.unquote(title[1])
+                #title = req.headers['Content-Disposition'].split('"')
+                #filename = parse.unquote(title[1])
+                filename = f'{mapid}.osz'
                 chunk = await req.read()
                 open(f'{mapfile}{filename}', 'wb').write(chunk)
-        print('地图下载完毕')
+        print('Map Download Complete')
         return filename
     except:
-        print('地图下载失败')
+        print('Map Download Failed')
         return
 
 # 获取version文件
