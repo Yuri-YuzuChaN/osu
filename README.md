@@ -59,6 +59,9 @@ pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-upd
 
 ## 更新说明
 
+**2021-01-26**
+1. 由于`zipfile`模块在解压文件名过长的文件时无法完全解压，已将文件名修改地图ID
+
 **2021-01-25**
 1. 可以查询其它模式
 2. 修改更改默认查询的模式的指令，现指令为`update mode mode`
