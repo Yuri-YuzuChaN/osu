@@ -337,7 +337,10 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         s = play_json[p]
         if mapid == 0:
             mapid = s['beatmap_id']
-        pp = float(s['pp'])
+        try:
+            pp = float(s['pp'])
+        except:
+            pass
         uid = s['user_id']
         mods_num = int(s['enabled_mods'])
         score = s['score']
@@ -530,7 +533,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         im = draw_text(im, w_pp, color=(255, 106, 178, 255))
 
         #if fc pp
-        if osumod != '0':
+        if osumod != 0:
             if_pp = '--'
         else:
             if_pp = int(calc_if(ver_file, mods_num, c50, c100, map_maxcb))
