@@ -1,6 +1,3 @@
-## 该项目pp计算模块已过期，16号osu更新pp算法，需等待`oppai`模块更新，模块更新后第一时间更新本项目
-pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-updates
-
 # osu
 
 基于HoshinoBot v2的osu查询模块
@@ -11,7 +8,7 @@ pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-upd
 
 1. 将该项目放在HoshinoBot插件目录 `modules` 下，或者clone本项目 `git clone https://github.com/Yuri-YuzuChaN/osu`
 2. 在`api.py`填入申请的`apikey`，`apikey`申请地址：https://osu.ppy.sh/p/api/
-3. pip以下依赖：`pillow`，`oppai`
+3. pip以下依赖：`pillow`，`oppai`，`pyttanko`
 4. 在`config/__bot__.py`模块列表中添加`osu`
 5. 重启HoshinoBot
 
@@ -57,6 +54,9 @@ pp更新情报 ：https://osu.ppy.sh/home/news/2021-01-14-performance-points-upd
 1. ~~pp+数据~~
 
 ## 更新说明
+
+**2021-02-12**
+1. 更新pp计算模块
 
 **2021-01-26**
 1. 由于`zipfile`模块在解压文件名过长的文件时无法完全解压，已将文件名修改地图ID
