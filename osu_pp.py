@@ -37,7 +37,7 @@ def calc_pp(osufile, mods_num, maxcb, c50, c100, c300, miss):
     ar = bmap.ar
     od = bmap.od
     hp = bmap.hp
-    play_pp = round(pp, 2)
+    play_pp = int(round(pp, 2))
     aim_pp = int(round(aim, 2))
     speed_pp = int(round(speed, 2))
     acc_pp = int(round(acc, 2))
@@ -66,3 +66,19 @@ def calc_time(osufile, c50, c100, c300, miss):
     play_time = ezpp_time_at(ez, setcb)
     ezpp_free(ez)
     return play_time
+
+def calc_acc(mode, c50, c100, c300, cmiss, ckatu, cgeki):
+    if mode == 0:
+        h1 = c50 * 50.0 + c100 * 100.0 + c300 * 300.0
+        h2 = (c50 + c100 + c300 + cmiss) * 300.0
+    elif mode == 1:
+        h1 = c100 + ckatu * 0.5 + c300 + cgeki
+        h2 = cmiss + c100 + ckatu + c300 + cgeki
+    elif mode == 2:
+        h1 = c50 + c100 + c300
+        h2 = ckatu + cmiss + c50 + c100 + c300
+    elif mode == 3:
+        h1 = (c50 * 50.0 + c100 * 100.0 + ckatu * 200.0 + (c300 + cgeki) * 300.0)
+        h2 = (c50 + c100 + ckatu + cgeki + c300 + cmiss) * 300.0
+
+    return h1 / h2 * 100.0
