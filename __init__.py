@@ -1,10 +1,6 @@
 import os
-import aiohttp
-import hoshino
-from hoshino import Service, util
-from hoshino.typing import MessageSegment, NoticeSession, CQEvent
-import requests
-import json
+from hoshino import Service
+from hoshino.typing import MessageSegment, CQEvent
 
 from .osusql import mysql
 from .api import get_api, osuapi
@@ -69,7 +65,7 @@ async def info(bot, ev:CQEvent):
     else:
         await bot.send(ev, '未知错误')
 
-@sv.on_prefix('recent')
+@sv.on_prefix(['recent','re'])
 async def recent(bot, ev:CQEvent):
     qqid = ev.user_id
     msg = ev.message.extract_plain_text().strip().split(' ')
@@ -90,7 +86,7 @@ async def recent(bot, ev:CQEvent):
             if result:
                 for i in result:
                     osuid = i[0]
-                osumod = msg[-1][1]
+                osumod = int(msg[-1][1])
             else:
                 await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
         else:
@@ -99,7 +95,7 @@ async def recent(bot, ev:CQEvent):
     elif list_len >= 2:
         if ':' in msg[-1]:
             osuid = ' '.join(msg[:list_len-1])
-            osumod = msg[-1][1]
+            osumod = int(msg[-1][1])
         else:
             osuid = ' '.join(msg[:list_len-1])
             osumod = 0
@@ -146,7 +142,7 @@ async def score(bot, ev:CQEvent):
             for i in result:
                 osuid = i[0]
             mapid = num[0]
-            osumod = num[-1][1]
+            osumod = int(num[-1][1])
         elif num[-1].isdigit():
             osuid = num[0]
             mapid = num[-1]
@@ -159,7 +155,7 @@ async def score(bot, ev:CQEvent):
         if ':' in num[-1] and num[-2].isdigit():
             osuid = ' '.join(num[:list_len-2])
             mapid = num[-2]
-            osumod = num[-1][1]
+            osumod = int(num[-1][1])
         else:
             await bot.finish(ev, '请输入正确的地图ID！')
     else:
@@ -178,7 +174,7 @@ async def score(bot, ev:CQEvent):
         else:
             id = osuid
         num = f'{id} 在该图未有游玩记录！'
-        await bot.send(ev, msg)
+        await bot.send(ev, num)
         
 @sv.on_prefix('bp')
 async def best(bot, ev:CQEvent):
@@ -189,7 +185,7 @@ async def best(bot, ev:CQEvent):
         num.remove('')
     if len(num) != 1:
         if num[0] == '1' or num[0] == '2' or num[0] == '3':
-            osumod = num[0]
+            osumod = int(num[0])
             del num[0]
     bpnum = ''
     sql = f'select osuname from userinfo where qqid = {qqid}'
@@ -278,7 +274,7 @@ async def mapinfo(bot, ev:CQEvent):
     elif not mapid.isdigit():
         await bot.finish(ev, '请输入正确的地图ID')
     else:
-        url = f'{osu_api}get_beatmaps?k={key}&b={mapid}&m=0'
+        url = f'{osu_api}get_beatmaps?k={key}&b={mapid}'
     info = await map_info(url, mapid)
     if info:
         if 'API' in info:
@@ -360,7 +356,7 @@ async def update(bot, ev:CQEvent):
         try:
             osuid = num[1]
         except:
-            msg = '请输入更改的用户名！'
+            await bot.finish(ev, '请输入更改的用户名！')
         url = f'{osu_api}get_user?k={key}&u={osuid}&m=0'
         info = await osuapi(url)
         if info:
@@ -375,30 +371,22 @@ async def update(bot, ev:CQEvent):
                 msg = '数据库错误'
         else:
             msg = '未查询到该用户，无法更改用户名！'
+    elif num[0] == 'mode':
+        try:
+            osumod = num[1]
+        except:
+            await bot.finish(ev, '请输入更改的模式！')
+        if osumod == '0' or osumod == '1' or osumod == '2' or osumod == '3':
+            sql = f'update userinfo set osumod = {osumod} where qqid = {qqid}'
+            result = mysql(sql)
+            if result:
+                msg = f'已将默认模式更改为 {mod[osumod]}'
+            else:
+                msg = '数据库错误'
+        else:
+            msg = '请输入正确的模式 0-3'
     else:
         msg = '参数错误，请输入正确的参数！'
-    await bot.send(ev, msg)
-
-@sv.on_prefix('mode')
-async def mode(bot, ev:CQEvent):
-    qqid = ev.user_id
-    num = ev.message.extract_plain_text()
-    sql = f'select * from userinfo where qqid = {qqid}'
-    result = mysql(sql)
-    if not result:
-        msg = '该账号尚未绑定，请输入 bind 用户名 绑定账号'
-    elif not num:
-        msg = '请输入正确的模式 0-3'
-    elif num == '0' or num == '1' or num == '2' or num == '3':
-        mid = mod[f'{num}']
-        sql = f'update userinfo set osumod = {num} where qqid = {qqid}'
-        result = mysql(sql)
-        if result:
-            msg = f'已将默认模式更改为 {mid}'
-        else:
-            msg = '数据库错误'
-    else:
-        msg = '请输入正确的模式 0-3'
     await bot.send(ev, msg)
 
 @sv.on_fullmatch('osuhelp')
