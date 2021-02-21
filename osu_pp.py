@@ -72,7 +72,7 @@ def calc_acc(mode, c50, c100, c300, cmiss, ckatu, cgeki):
         h1 = c50 * 50.0 + c100 * 100.0 + c300 * 300.0
         h2 = (c50 + c100 + c300 + cmiss) * 300.0
     elif mode == 1:
-        h1 = c100 + ckatu * 0.5 + c300 + cgeki
+        h1 = (c100 + ckatu) * 0.5 + c300 + cgeki
         h2 = cmiss + c100 + ckatu + c300 + cgeki
     elif mode == 2:
         h1 = c50 + c100 + c300
