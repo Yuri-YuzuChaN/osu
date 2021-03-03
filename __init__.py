@@ -19,7 +19,7 @@ mod = { '0' : 'Std', '1' : 'Taiko', '2' : 'Ctb', '3' : 'Mania'}
 osu_api = 'https://osu.ppy.sh/api/'
 
 #输出玩家信息
-@sv.on_prefix('info')
+@sv.on_prefix(('info', 'INFO', 'Info'))
 async def info(bot, ev:CQEvent):
     qqid = ev.user_id
     msg = ev.message.extract_plain_text().strip().split(' ')
@@ -65,7 +65,7 @@ async def info(bot, ev:CQEvent):
     else:
         await bot.send(ev, '未知错误')
 
-@sv.on_prefix(['recent','re'])
+@sv.on_prefix(('recent', 're', 'RECENT', 'RE', 'Recent', 'Re'))
 async def recent(bot, ev:CQEvent):
     qqid = ev.user_id
     msg = ev.message.extract_plain_text().strip().split(' ')
@@ -118,7 +118,7 @@ async def recent(bot, ev:CQEvent):
         info = f'{id} 最近在 {mid} 模式中未有游玩记录！'
         await bot.send(ev, info)
         
-@sv.on_prefix('score')
+@sv.on_prefix(('score', 'SCORE', 'Score'))
 async def score(bot, ev:CQEvent):
     qqid = ev.user_id
     num = ev.message.extract_plain_text().strip().split(' ')
@@ -176,7 +176,7 @@ async def score(bot, ev:CQEvent):
         num = f'{id} 在该图未有游玩记录！'
         await bot.send(ev, num)
         
-@sv.on_prefix('bp')
+@sv.on_prefix(('bp', 'BP', 'Bp'))
 async def best(bot, ev:CQEvent):
     qqid = ev.user_id
     num = ev.message.extract_plain_text().strip().split(' ')
@@ -266,7 +266,7 @@ async def best(bot, ev:CQEvent):
         info = '未知错误'
         await bot.send(ev, info)
   
-@sv.on_prefix('map')
+@sv.on_prefix(('map', 'MAP', 'Map'))
 async def mapinfo(bot, ev:CQEvent):
     mapid = ev.message.extract_plain_text().strip()
     if not mapid:
@@ -285,7 +285,7 @@ async def mapinfo(bot, ev:CQEvent):
         info = '未查询到该地图'
         await bot.send(ev, info)
         
-@sv.on_prefix('bind')
+@sv.on_prefix(('bind', 'BIND', 'Bind'))
 async def bind(bot, ev:CQEvent):
     qqid = ev.user_id
     uid = ev.message.extract_plain_text()
@@ -313,7 +313,7 @@ async def bind(bot, ev:CQEvent):
                 msg = '绑定失败！'
     await bot.send(ev, msg)
 
-@sv.on_prefix('unbind')
+@sv.on_prefix(('unbind', 'Unbind', 'UNBIND'))
 async def unbind(bot, ev:CQEvent):
     qqid = ev.user_id
     sel_sql = f'select * from userinfo where qqid = {qqid}'
@@ -328,7 +328,7 @@ async def unbind(bot, ev:CQEvent):
     else:
         await bot.send(ev, '该用户尚未绑定，无需解绑')
 
-@sv.on_prefix('update')
+@sv.on_prefix(('update', 'UPDATE', 'Update'))
 async def update(bot, ev:CQEvent):
     qqid = ev.user_id
     num = ev.message.extract_plain_text().strip().split(' ')
@@ -347,8 +347,8 @@ async def update(bot, ev:CQEvent):
         if result:
             for i in result:
                 osuid = i[0]
-            get_user_icon(osuid)
-            get_user_header(osuid)
+            await get_user_icon(osuid, True)
+            await get_user_header(osuid, True)
             msg = '头像更新完成'
         else:
             msg = '该用户未绑定，无法更新头像！'
@@ -387,7 +387,7 @@ async def update(bot, ev:CQEvent):
             msg = '请输入正确的模式 0-3'
     else:
         msg = '参数错误，请输入正确的参数！'
-    await bot.send(ev, msg)
+    await bot.send(ev, msg, at_sender=True)
 
 @sv.on_fullmatch('osuhelp')
 async def help(bot, ev:CQEvent):
