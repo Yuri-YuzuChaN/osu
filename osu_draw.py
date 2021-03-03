@@ -1,5 +1,4 @@
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
-import hoshino
 from hoshino.typing import MessageSegment
 import os
 import time
@@ -208,7 +207,7 @@ async def draw_info(osuid, osumod):
             im = Image.new('RGBA', (bg.L, bg.T))
             
             #底图
-            header_img = get_user_header(uid)
+            header_img = await get_user_header(uid)
             if header_img:
                 header_d = crop_bg(header_img, 'H')
                 header_gb = header_d.filter(ImageFilter.GaussianBlur(2))
@@ -221,7 +220,7 @@ async def draw_info(osuid, osumod):
             
             #头像
             #获取头像
-            user_icon = get_user_icon(uid)
+            user_icon = await get_user_icon(uid)
             icon_f = Image.open(user_icon)
             #头像圆角
             icon_s = draw_fillet(icon_f, 50)
@@ -451,7 +450,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
 
             #头像
             #获取头像
-            user_icon = get_user_icon(uid)
+            user_icon = await get_user_icon(uid)
             icon_f = Image.open(user_icon)
             #头像画圆
             icon_d = draw_fillet(icon_f, 128)
@@ -577,7 +576,7 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
             # acc
             acc = round(calc_acc(osumod, c50, c100, c300, cmiss, ckatu, cgeki), 2)
             w_acc = datatext(350, 950, 45, f'{acc}%', Torus_Regular, anchor='mm')
-            accred , accgreen = percent_color(acc)
+            accred , accgreen = percent_color(acc/100)
             im = draw_text(im, w_acc, color=(accred, accgreen, 50, 255))
 
             # 300,100,50,miss
