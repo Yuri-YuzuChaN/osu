@@ -171,6 +171,13 @@ def percent_color(percent):
         green = int(255 * percent)
     return red, green
 
+def set_mod_list(json, modnum):
+    vnum =[]
+    for index, v in enumerate(json):
+        if v['enabled_mods'] == str(modnum):
+            vnum.append(index)
+    return vnum
+
 async def draw_info(osuid, osumod):
     url = f'{api}get_user?k={key}&u={osuid}&m={osumod}'
     info = await osuapi(url)
@@ -330,28 +337,36 @@ async def draw_info(osuid, osumod):
         msg = '未查询到该用户'
     return msg
 
-async def draw_score(url, username, osumod, mapid=0, bpnum=0):
+async def draw_score(url, username, osumod, mapid=0, bpnum=0, setmod=0):
     map_pp = []
     play_json = await osuapi(url)
     if 'API' in play_json:
         msg = play_json
     elif play_json:
         try:
+            #如果不是查询BP，则是recent指令
             if bpnum == 0:
                 s = play_json[0]
+            #如果查询开mod bp
+            elif setmod != 0:
+                modlist = set_mod_list(play_json, setmod)
+                if not modlist:
+                    return '没有在bp上查询到开启该mod的成绩'
+                s = play_json[modlist[bpnum - 1]]
+            #如果查询bp
             else:
                 s = play_json[bpnum - 1]
-
+            #如果有指定第几张图
             if mapid == 0:
                 mapid = s['beatmap_id']
-
+            #如果查询bp，返回pp
             for i in ['get_user_best', 'get_scores']:
                 if i in url:
                     pp = int(float(s['pp']))
                     break
             else:
                 pp = '--'
-                
+            
             uid = s['user_id']
             mods_num = int(s['enabled_mods'])
             score = s['score']
@@ -620,28 +635,44 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0):
         msg = False
     return msg
 
-async def best_pfm(url, osuid, osumod, min, max):
+async def best_pfm(url, osuid, osumod, min, max, setmod=0):
     play_json = await osuapi(url)
     bp = []
     msg = ''
     if 'API' in play_json:
         msg = play_json
     elif play_json:
-        bp.append(f"{osuid}'s Best Performance:\n{osumod} BP {min} - {max}")
-        msg = "".join(bp)
-        for num in range(min-1, max):
-            s = play_json[num]
-            pp = s['pp']
-            mapid = s['beatmap_id']
-            bp_msg = f'\nBP {num+1}  {pp}pp  id:{mapid}'
-            bp.append(bp_msg)
+        if setmod != 0:
+            modlist = set_mod_list(play_json, setmod)
+            if not modlist:
+                return '没有在bp上查询到开启该mod的成绩'
+            max = len(modlist)
+            modname = ','.join(resolve(setmod))
+            bp.append(f"{osuid}'s Best Performance:\n{osumod} {modname} BP {min} - {max}")
             msg = "".join(bp)
+            for num in modlist:
+                s = play_json[num]
+                pp = s['pp']
+                mapid = s['beatmap_id']
+                bp_msg = f'\nBP {num+1}  {pp}pp  id:{mapid}'
+                bp.append(bp_msg)
+                msg = "".join(bp)
+        else:
+            bp.append(f"{osuid}'s Best Performance:\n{osumod} BP {min} - {max}")
+            msg = "".join(bp)
+            for num in range(min-1, max):
+                s = play_json[num]
+                pp = s['pp']
+                mapid = s['beatmap_id']
+                bp_msg = f'\nBP {num+1}  {pp}pp  id:{mapid}'
+                bp.append(bp_msg)
+                msg = "".join(bp)
         return msg
     else:
         msg = False
     return msg
 
-async def map_info(url, mapid):
+async def map_info(url, mapid, setmod=0):
     map_json = await osuapi(url)
     info = []
     msg = ''
@@ -672,7 +703,7 @@ async def map_info(url, mapid):
         dirpath = await Download(bmapid)
         ver_file = get_file(dirpath, mapid, version)
         if mode == '0':
-            map_pp = round(calc_acc_pp(ver_file, 0)[5], 2)
+            map_pp = round(calc_acc_pp(ver_file, setmod)[5], 2)
         else:
             map_pp = 'Std Only'
 
