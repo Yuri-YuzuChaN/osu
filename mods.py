@@ -10,7 +10,7 @@ mods = {
     '32'        :       'SD',
     '64'        :       'DT',
     '128'       :       'RX',
-    '256'       :       'HF',
+    '256'       :       'HT',
     '576'       :       'NC',
     '1024'      :       'FL',
     '2048'      :       'AT',
@@ -65,3 +65,12 @@ def mod_name(result):
     for i in result:
         mods_name.append(mods[f'{i}'])
     return mods_name
+
+def get_mod_num(mod):
+    newmod = {value: key for key, value in mods.items()}
+    modnum = 0
+    for i in mod:
+        name = i.upper()
+        mn = int(newmod[f'{name}'])
+        modnum+=mn
+    return modnum
