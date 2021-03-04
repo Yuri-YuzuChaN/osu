@@ -6,6 +6,7 @@ from .osusql import mysql
 from .api import get_api, osuapi
 from .osu_draw import draw_info, draw_score, best_pfm, map_info
 from .osu_file import get_user_icon, get_user_header
+from .mods import *
 
 osupath = os.path.dirname(__file__)
 osuhelp = f'{osupath}/OsuFile/osu_help.png'
@@ -183,6 +184,9 @@ async def best(bot, ev:CQEvent):
     osumod = 0
     if '' in num:
         num.remove('')
+    if '+' in num[-1]:
+        setmod = get_mod_num(num[-1][1:].split(','))
+        del num[-1]
     if len(num) != 1:
         if num[0] == '1' or num[0] == '2' or num[0] == '3':
             osumod = int(num[0])
@@ -202,10 +206,8 @@ async def best(bot, ev:CQEvent):
                     await bot.finish(ev, '请输入正确的bp范围')
                 elif range_limit > 10:
                     await bot.finish(ev, '只允许查询10个bp成绩')
-                elif max > 10:
+                else:
                     limit = 100
-                elif max <= 10:
-                    limit = 10
                 for i in result:
                     osuid = i[0]
             elif not result:
@@ -220,10 +222,8 @@ async def best(bot, ev:CQEvent):
                     await bot.finish(ev, '请输入正确的bp范围')
                 elif range_limit > 10:
                     await bot.finish(ev, '只允许查询10个bp成绩')
-                elif max > 10:
+                else:
                     limit = 100
-                elif max <= 10:
-                    limit = 10
                 osuid = ' '.join(num[1:-1])
             else:
                 await bot.finish(ev, '请输入正确的参数')
@@ -236,27 +236,47 @@ async def best(bot, ev:CQEvent):
             for i in result:
                 osuid = i[0]
             bpnum = int(num[0])
-            limit = 100 if bpnum > 10 else 10
+            if setmod:
+                limit = 100
+            elif bpnum > 10:
+                limit = 100
+            else:
+                limit = 10
+            # limit = 100 if bpnum > 10 else 10
         elif not result:
             await bot.finish(ev, '该账号尚未绑定，请输入 bind 用户名 绑定账号')
         else:
             await bot.finish(ev, '请输入正确的参数')
     elif list_len >= 2:
-        if num[-1].isdigit():
+        if '+' in num[-1]:
+            pass
+        elif num[-1].isdigit():
             if int(num[-1]) <= 0 or int(num[-1]) > 100:
                 await bot.finish(ev, '只允许查询bp 1-100 的成绩')
             osuid = ' '.join(num[:list_len-1])
             bpnum = int(num[-1])
-            limit = 100 if bpnum > 10 else 10
+            if setmod:
+                limit = 100
+            elif bpnum > 10:
+                limit = 100
+            else:
+                limit = 10
+            # limit = 100 if bpnum > 10 else 10
         else:
             await bot.finish(ev, '请输入正确的参数')
 
     url = f'{osu_api}get_user_best?k={key}&u={osuid}&m={osumod}&limit={limit}'
     if bpnum:
-        info = await draw_score(url, osuid, osumod, bpnum=bpnum)
+        if setmod:
+            info = await draw_score(url, osuid, osumod, bpnum=bpnum, setmod=setmod)
+        else:
+            info = await draw_score(url, osuid, osumod, bpnum=bpnum)
     else:
         mid = mod[f'{osumod}']
-        info = await best_pfm(url, osuid, mid, min, max)
+        if setmod:
+            info = await best_pfm(url, osuid, mid, min, max, setmod)
+        else:
+            info = await best_pfm(url, osuid, mid, min, max)
     if info:
         if 'API' in info:
             await bot.send(ev, info)
@@ -268,14 +288,17 @@ async def best(bot, ev:CQEvent):
   
 @sv.on_prefix(('map', 'MAP', 'Map'))
 async def mapinfo(bot, ev:CQEvent):
-    mapid = ev.message.extract_plain_text().strip()
+    mapid = ev.message.extract_plain_text().strip().split(' ')
+    if '+' in mapid[-1]:
+        setmod = get_mod_num(mapid[-1][1:].split(','))
+        del mapid[-1]
     if not mapid:
         await bot.finish(ev, '请输入地图ID')
-    elif not mapid.isdigit():
+    elif not mapid[0].isdigit():
         await bot.finish(ev, '请输入正确的地图ID')
     else:
-        url = f'{osu_api}get_beatmaps?k={key}&b={mapid}'
-    info = await map_info(url, mapid)
+        url = f'{osu_api}get_beatmaps?k={key}&b={mapid[0]}'
+    info = await map_info(url, mapid[0], setmod=setmod)
     if info:
         if 'API' in info:
             await bot.send(ev, info)
