@@ -672,7 +672,7 @@ async def best_pfm(url, osuid, osumod, min, max, setmod=0):
         msg = False
     return msg
 
-async def map_info(url, mapid, setmod=0):
+async def map_info(url, mapid, setmod):
     map_json = await osuapi(url)
     info = []
     msg = ''
