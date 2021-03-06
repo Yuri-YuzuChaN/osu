@@ -182,6 +182,7 @@ async def best(bot, ev:CQEvent):
     qqid = ev.user_id
     num = ev.message.extract_plain_text().strip().split(' ')
     osumod = 0
+    setmod = 0
     if '' in num:
         num.remove('')
     if '+' in num[-1]:
@@ -236,7 +237,7 @@ async def best(bot, ev:CQEvent):
             for i in result:
                 osuid = i[0]
             bpnum = int(num[0])
-            if setmod:
+            if setmod != 0:
                 limit = 100
             elif bpnum > 10:
                 limit = 100
@@ -255,7 +256,7 @@ async def best(bot, ev:CQEvent):
                 await bot.finish(ev, '只允许查询bp 1-100 的成绩')
             osuid = ' '.join(num[:list_len-1])
             bpnum = int(num[-1])
-            if setmod:
+            if setmod != 0:
                 limit = 100
             elif bpnum > 10:
                 limit = 100
@@ -267,13 +268,13 @@ async def best(bot, ev:CQEvent):
 
     url = f'{osu_api}get_user_best?k={key}&u={osuid}&m={osumod}&limit={limit}'
     if bpnum:
-        if setmod:
+        if setmod != 0:
             info = await draw_score(url, osuid, osumod, bpnum=bpnum, setmod=setmod)
         else:
             info = await draw_score(url, osuid, osumod, bpnum=bpnum)
     else:
         mid = mod[f'{osumod}']
-        if setmod:
+        if setmod != 0:
             info = await best_pfm(url, osuid, mid, min, max, setmod)
         else:
             info = await best_pfm(url, osuid, mid, min, max)
@@ -289,6 +290,7 @@ async def best(bot, ev:CQEvent):
 @sv.on_prefix(('map', 'MAP', 'Map'))
 async def mapinfo(bot, ev:CQEvent):
     mapid = ev.message.extract_plain_text().strip().split(' ')
+    setmod = 0
     if '+' in mapid[-1]:
         setmod = get_mod_num(mapid[-1][1:].split(','))
         del mapid[-1]
@@ -298,7 +300,7 @@ async def mapinfo(bot, ev:CQEvent):
         await bot.finish(ev, '请输入正确的地图ID')
     else:
         url = f'{osu_api}get_beatmaps?k={key}&b={mapid[0]}'
-    info = await map_info(url, mapid[0], setmod=setmod)
+    info = await map_info(url, mapid[0], setmod)
     if info:
         if 'API' in info:
             await bot.send(ev, info)
