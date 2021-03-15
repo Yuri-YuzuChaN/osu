@@ -549,7 +549,9 @@ async def draw_score(url, username, osumod, mapid=0, bpnum=0, setmod=0):
             im = draw_text(im, w_username)
 
             #游玩时间
-            w_date = datatext(145, 477, 26, date, Torus_Regular)
+            date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+            newtime = (date + timedelta(hours=8)).strftime('%Y-%m-%d %H:%M:%S')
+            w_date = datatext(145, 477, 26, newtime, Torus_Regular)
             im = draw_text(im, w_date)
 
             #游玩PP
